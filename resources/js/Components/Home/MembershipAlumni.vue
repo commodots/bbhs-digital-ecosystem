@@ -8,9 +8,9 @@ const alumni = [
         image: '/images/bbhs/alumni/oyewole-seun.jpg',
     },
     {
-        name: 'Akinkunmi Akinlade',
+        name: 'Otunba Gbega Daniel',
         classSet: 'BBHS Old Boy',
-        image: '/images/bbhs/alumni/akinkunmi-akinlade.jpg',
+        image: '/images/bbhs/alumni/otunba-gbenga-daniel.jpg',
     },
     {
         name: 'Otunba Wole Okunowo',

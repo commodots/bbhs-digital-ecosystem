@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 /*
@@ -25,6 +26,17 @@ use App\Http\Controllers\MemberDashboardController;
 
 /*
 |--------------------------------------------------------------------------
+| Public Controllers
+|--------------------------------------------------------------------------
+*/
+
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProjectController;
+
+/*
+|--------------------------------------------------------------------------
 | Admin Controllers
 |--------------------------------------------------------------------------
 */
@@ -33,7 +45,8 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminMemberController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminEventController;
-
+use App\Http\Controllers\Admin\AdminProjectController;
+use App\Http\Controllers\Auth\AdminLoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,54 +54,25 @@ use App\Http\Controllers\Admin\AdminEventController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return Inertia::render('Home');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
+Route::get('/about', fn () => Inertia::render('About'))->name('about');
 
-Route::get('/about', function () {
-    return Inertia::render('About');
-})->name('about');
+Route::get('/alumni', fn () => Inertia::render('Alumni'))->name('alumni');
 
+Route::get('/events', [EventController::class, 'index'])->name('events');
 
-Route::get('/alumni', function () {
-    return Inertia::render('Alumni');
-})->name('alumni');
+Route::get('/news', [NewsController::class, 'index'])->name('news');
 
+Route::get('/projects', [ProjectController::class, 'index'])->name('projects');
 
-Route::get('/events', function () {
-    return Inertia::render('Events');
-})->name('events');
+Route::get('/resources', fn () => Inertia::render('Resources'))->name('resources');
 
+Route::get('/membership', fn () => Inertia::render('Membership'))->name('membership');
 
-Route::get('/news', function () {
-    return Inertia::render('News');
-})->name('news');
+Route::get('/gallery', fn () => Inertia::render('Gallery'))->name('gallery');
 
-
-Route::get('/projects', function () {
-    return Inertia::render('Projects');
-})->name('projects');
-
-
-Route::get('/resources', function () {
-    return Inertia::render('Resources');
-})->name('resources');
-
-
-Route::get('/membership', function () {
-    return Inertia::render('Membership');
-})->name('membership');
-
-
-Route::get('/gallery', function () {
-    return Inertia::render('Gallery');
-})->name('gallery');
-
-
-Route::get('/contact', function () {
-    return Inertia::render('Contact');
-})->name('contact');
+Route::get('/contact', fn () => Inertia::render('Contact'))->name('contact');
 
 
 /*
@@ -97,41 +81,16 @@ Route::get('/contact', function () {
 |--------------------------------------------------------------------------
 */
 
-/*
-|--------------------------------------------------------------------------
-| Login
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/login', function () {
-    return Inertia::render('Login');
-})->name('login');
-
+Route::get('/login', fn () => Inertia::render('Login'))->name('login');
 
 Route::post('/login', [MemberLoginController::class, 'store'])
     ->name('login.store');
 
-
-/*
-|--------------------------------------------------------------------------
-| Logout
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/logout', [MemberLoginController::class, 'destroy'])
+Route::post('/logout', [\App\Http\Controllers\Auth\MemberLoginController::class, 'destroy'])
+    ->middleware('auth')
     ->name('logout');
 
-
-/*
-|--------------------------------------------------------------------------
-| Registration
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/register', function () {
-    return Inertia::render('Register');
-})->name('register');
-
+Route::get('/register', fn () => Inertia::render('Register'))->name('register');
 
 Route::post('/register', [MemberRegistrationController::class, 'store'])
     ->name('member.register');
@@ -149,35 +108,22 @@ Route::get('/alumni-directory', [AlumniDirectoryController::class, 'index'])
 
 /*
 |--------------------------------------------------------------------------
-| Public Event Detail
+| Public Detail Pages
 |--------------------------------------------------------------------------
+|
+| Keep the existing demo/detail pages working while the public
+| dynamic News/Event detail integration is finalized.
+|
 */
 
-Route::get('/events/reunion', function () {
-    return Inertia::render('EventDetail');
-})->name('events.detail');
+Route::get('/events/{event:slug}', [EventController::class, 'show'])
+    ->name('events.detail');
 
+Route::get('/news/{news:slug}', [NewsController::class, 'show'])
+    ->name('news.detail');
 
-/*
-|--------------------------------------------------------------------------
-| Public News Detail
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/news/story', function () {
-    return Inertia::render('NewsDetail');
-})->name('news.detail');
-
-
-/*
-|--------------------------------------------------------------------------
-| Public Project Detail
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/projects/supporting-the-future', function () {
-    return Inertia::render('ProjectDetail');
-})->name('projects.detail');
+Route::get('/projects/{project:slug}', [ProjectController::class, 'show'])
+    ->name('projects.detail');
 
 
 /*
@@ -198,29 +144,14 @@ Route::post('/contact', [ContactMessageController::class, 'store'])
 
 Route::middleware(['auth'])->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Member Dashboard
-    |--------------------------------------------------------------------------
-    */
-
     Route::get('/dashboard', [MemberDashboardController::class, 'index'])
         ->name('dashboard');
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Member Profile
-    |--------------------------------------------------------------------------
-    */
 
     Route::get('/profile', [MemberProfileController::class, 'show'])
         ->name('profile');
 
-
     Route::put('/profile', [MemberProfileController::class, 'update'])
         ->name('profile.update');
-
 });
 
 
@@ -228,20 +159,21 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 | Admin Area
 |--------------------------------------------------------------------------
-|
-| All routes below require:
-|
-| 1. Authentication
-| 2. Admin privileges
-|
-| URL prefix:
-| /admin
-|
-| Route name prefix:
-| admin.
-|
 */
+Route::get('/admin/login', [AdminLoginController::class, 'create'])
+    ->middleware('guest')
+    ->name('admin.login');
 
+Route::post('/admin/login', [AdminLoginController::class, 'store'])
+    ->middleware('guest')
+    ->name('admin.login.store');
+
+Route::redirect('/admin', '/admin/dashboard')
+    ->middleware(['auth', 'admin']);
+
+Route::redirect('/admin/index', '/admin/dashboard')
+    ->middleware(['auth', 'admin']);
+	
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
@@ -249,7 +181,22 @@ Route::middleware(['auth', 'admin'])
 
         /*
         |--------------------------------------------------------------------------
-        | Admin Dashboard
+        | Admin Home
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/', function () {
+            return Redirect::route('admin.dashboard');
+        })->name('index');
+
+        Route::get('/index', function () {
+            return Redirect::route('admin.dashboard');
+        })->name('index.page');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard
         |--------------------------------------------------------------------------
         */
 
@@ -259,25 +206,21 @@ Route::middleware(['auth', 'admin'])
 
         /*
         |--------------------------------------------------------------------------
-        | Member Management
+        | Members
         |--------------------------------------------------------------------------
         */
 
         Route::get('/members', [AdminMemberController::class, 'index'])
             ->name('members.index');
 
-
         Route::get('/members/{user}', [AdminMemberController::class, 'show'])
             ->name('members.show');
-
 
         Route::post('/members/{user}/approve', [AdminMemberController::class, 'approve'])
             ->name('members.approve');
 
-
         Route::post('/members/{user}/suspend', [AdminMemberController::class, 'suspend'])
             ->name('members.suspend');
-
 
         Route::post('/members/{user}/reject', [AdminMemberController::class, 'reject'])
             ->name('members.reject');
@@ -285,19 +228,8 @@ Route::middleware(['auth', 'admin'])
 
         /*
         |--------------------------------------------------------------------------
-        | News Management
+        | News
         |--------------------------------------------------------------------------
-        |
-        | Creates:
-        |
-        | GET       /admin/news
-        | GET       /admin/news/create
-        | POST      /admin/news
-        | GET       /admin/news/{news}/edit
-        | PUT       /admin/news/{news}
-        | PATCH     /admin/news/{news}
-        | DELETE    /admin/news/{news}
-        |
         */
 
         Route::resource('news', AdminNewsController::class)
@@ -306,22 +238,20 @@ Route::middleware(['auth', 'admin'])
 
         /*
         |--------------------------------------------------------------------------
-        | Events Management
+        | Events
         |--------------------------------------------------------------------------
-        |
-        | Creates:
-        |
-        | GET       /admin/events
-        | GET       /admin/events/create
-        | POST      /admin/events
-        | GET       /admin/events/{event}/edit
-        | PUT       /admin/events/{event}
-        | PATCH     /admin/events/{event}
-        | DELETE    /admin/events/{event}
-        |
         */
 
         Route::resource('events', AdminEventController::class)
             ->except(['show']);
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Projects
+        |--------------------------------------------------------------------------
+        */
+
+        Route::resource('projects', AdminProjectController::class)
+            ->except(['show']);
     });

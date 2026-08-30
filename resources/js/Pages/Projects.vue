@@ -1,59 +1,14 @@
 <script setup>
 import PublicLayout from '../Layouts/PublicLayout.vue';
+import { ArrowRight, GraduationCap, HeartHandshake, Lightbulb, Building2 } from 'lucide-vue-next';
 
-import {
-    ArrowRight,
-    CheckCircle2,
-    GraduationCap,
-    HeartHandshake,
-    Lightbulb,
-    Building2,
-} from 'lucide-vue-next';
+const props = defineProps({
+    projects: { type: Object, default: () => ({ data: [] }) },
+});
 
-const images = {
-    gate: '/images/bbhs/school/bbhs-school-gate.jpg',
-    students01: '/images/bbhs/students/bbhs-students-01.jpg',
-    students02: '/images/bbhs/students/bbhs-students-02.jpg',
-    students03: '/images/bbhs/students/bbhs-students-03.jpg',
-    reunion01: '/images/bbhs/events/reunion-01.jpg',
-    reunion02: '/images/bbhs/events/reunion-02.jpg',
-};
+const projects = props.projects?.data ?? [];
 
-const projects = [
-    {
-        category: 'Education',
-        title: 'Supporting the Future of BBHS',
-        description:
-            'Supporting initiatives that improve the learning environment and create better opportunities for present and future students.',
-        image: images.gate,
-        status: 'Active',
-        progress: 75,
-        raised: '₦45M',
-        target: '₦60M',
-    },
-    {
-        category: 'Students',
-        title: 'Student Development & Mentorship',
-        description:
-            'Creating opportunities for students to develop confidence, leadership skills, career awareness and a strong sense of purpose.',
-        image: images.students01,
-        status: 'Ongoing',
-        progress: 60,
-        raised: '₦18M',
-        target: '₦30M',
-    },
-    {
-        category: 'Infrastructure',
-        title: 'BBHS Infrastructure Support',
-        description:
-            'Supporting projects that improve facilities, learning spaces and the overall environment of Baptist Boys’ High School.',
-        image: images.students02,
-        status: 'Ongoing',
-        progress: 50,
-        raised: '₦25M',
-        target: '₦50M',
-    },
-];
+const images = { gate: '/images/bbhs/school/bbhs-school-gate.jpg' };
 </script>
 
 <template>

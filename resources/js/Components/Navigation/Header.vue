@@ -1,62 +1,87 @@
 <script setup>
-import { ref } from 'vue';
-import { Menu, X, UserRound } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
+import { usePage, useForm } from '@inertiajs/vue3';
+import { Menu, X, UserRound, LayoutDashboard, LogOut } from 'lucide-vue-next';
 
 const mobileOpen = ref(false);
+const page = usePage();
+
+const user = computed(() => page.props.auth?.user ?? null);
+const isLoggedIn = computed(() => !!user.value);
+const isAdmin = computed(() => !!user.value?.is_admin);
 
 const closeMobileMenu = () => {
     mobileOpen.value = false;
+};
+
+const logoutForm = useForm({});
+
+const logout = () => {
+    logoutForm.post('/logout', {
+        preserveScroll: true,
+        onFinish: () => closeMobileMenu(),
+    });
 };
 </script>
 
 <template>
     <header class="relative z-50 w-full">
 
-        <!-- =========================================================
-             TOP INFORMATION BAR
-        ========================================================== -->
+        <!-- TOP INFORMATION BAR -->
         <div class="hidden bg-[#00351F] text-white lg:block">
             <div
                 class="mx-auto flex h-9 max-w-[1440px] items-center justify-between px-6 text-xs"
             >
                 <div class="flex items-center gap-6">
                     <span>BBHS Old Boys Association</span>
-
                     <span class="text-white/50">|</span>
-
                     <span>Abeokuta, Ogun State, Nigeria</span>
                 </div>
 
+                <!-- Guest -->
                 <a
+                    v-if="!isLoggedIn"
                     href="/login"
                     class="flex items-center gap-2 transition-colors hover:text-[#F1D36A]"
                 >
                     <UserRound :size="14" />
-
                     <span>Member Login</span>
+                </a>
+
+                <!-- Member -->
+                <a
+                    v-else-if="!isAdmin"
+                    href="/dashboard"
+                    class="flex items-center gap-2 transition-colors hover:text-[#F1D36A]"
+                >
+                    <LayoutDashboard :size="14" />
+                    <span>Member Dashboard</span>
+                </a>
+
+                <!-- Admin -->
+                <a
+                    v-else
+                    href="/admin/dashboard"
+                    class="flex items-center gap-2 transition-colors hover:text-[#F1D36A]"
+                >
+                    <LayoutDashboard :size="14" />
+                    <span>Admin Dashboard</span>
                 </a>
             </div>
         </div>
 
-
-        <!-- =========================================================
-             MAIN NAVIGATION
-        ========================================================== -->
+        <!-- MAIN NAVIGATION -->
         <div class="border-b border-gray-200 bg-white">
-
             <div
                 class="mx-auto flex h-[84px] max-w-[1440px] items-center justify-between px-5 lg:px-8"
             >
 
-                <!-- =================================================
-                     BRAND / LOGO
-                ================================================== -->
+                <!-- BRAND -->
                 <a
                     href="/"
                     class="flex min-w-0 items-center gap-3"
                     @click="closeMobileMenu"
                 >
-
                     <img
                         :src="'/images/bbhs/logo/bbhs-logo.png'"
                         alt="Baptist Boys' High School Old Boys Association"
@@ -64,98 +89,84 @@ const closeMobileMenu = () => {
                     >
 
                     <div class="hidden min-w-0 sm:block">
-
-                        <div
-                            class="truncate text-base font-extrabold leading-tight tracking-wide text-[#00351F] lg:text-lg"
-                        >
+                        <div class="truncate text-base font-extrabold leading-tight tracking-wide text-[#00351F] lg:text-lg">
                             BAPTIST BOYS' HIGH SCHOOL
                         </div>
 
-                        <div
-                            class="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#087A3A] lg:text-xs"
-                        >
+                        <div class="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#087A3A] lg:text-xs">
                             OLD BOYS' ASSOCIATION
                         </div>
 
-                        <div
-                            class="mt-0.5 text-[9px] font-medium uppercase tracking-[0.16em] text-gray-500 lg:text-[10px]"
-                        >
+                        <div class="mt-0.5 text-[9px] font-medium uppercase tracking-[0.16em] text-gray-500 lg:text-[10px]">
                             Abeokuta
                         </div>
-
                     </div>
-
                 </a>
 
-
-                <!-- =================================================
-                     DESKTOP NAVIGATION
-                ================================================== -->
+                <!-- DESKTOP NAVIGATION -->
                 <nav class="hidden items-center gap-5 lg:flex xl:gap-6">
 
-                    <a
-                        href="/"
-                        class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]"
-                    >
-                        Home
-                    </a>
+                    <a href="/" class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]">Home</a>
+                    <a href="/about" class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]">About</a>
+                    <a href="/alumni" class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]">Alumni</a>
+                    <a href="/events" class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]">Events</a>
+                    <a href="/news" class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]">News & Media</a>
+                    <a href="/projects" class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]">Projects</a>
+                    <a href="/resources" class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]">Resources</a>
 
+                    <!-- GUEST -->
                     <a
-                        href="/about"
-                        class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]"
-                    >
-                        About
-                    </a>
-
-                    <a
-                        href="/alumni"
-                        class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]"
-                    >
-                        Alumni
-                    </a>
-
-                    <a
-                        href="/events"
-                        class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]"
-                    >
-                        Events
-                    </a>
-
-                    <a
-                        href="/news"
-                        class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]"
-                    >
-                        News & Media
-                    </a>
-
-                    <a
-                        href="/projects"
-                        class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]"
-                    >
-                        Projects
-                    </a>
-
-                    <a
-                        href="/resources"
-                        class="text-sm font-semibold text-gray-700 transition-colors hover:text-[#087A3A]"
-                    >
-                        Resources
-                    </a>
-
-                    <!-- Join button -->
-                    <a
+                        v-if="!isLoggedIn"
                         href="/membership"
                         class="ml-1 inline-flex items-center justify-center rounded-lg bg-[#D4A72C] px-5 py-3 text-sm font-bold text-[#00351F] shadow-sm transition-all hover:bg-[#E5B93F] hover:shadow-md"
                     >
                         JOIN NOW
                     </a>
 
+                    <!-- MEMBER -->
+                    <template v-else-if="!isAdmin">
+                        <a
+                            href="/dashboard"
+                            class="ml-1 inline-flex items-center gap-2 rounded-lg bg-[#006B3C] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#00552F]"
+                        >
+                            <LayoutDashboard :size="16" />
+                            DASHBOARD
+                        </a>
+
+                        <button
+                            type="button"
+                            :disabled="logoutForm.processing"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-3 text-sm font-bold text-gray-700 transition hover:border-[#006B3C] hover:text-[#006B3C] disabled:opacity-50"
+                            @click="logout"
+                        >
+                            <LogOut :size="16" />
+                            LOGOUT
+                        </button>
+                    </template>
+
+                    <!-- ADMIN -->
+                    <template v-else>
+                        <a
+                            href="/admin/dashboard"
+                            class="ml-1 inline-flex items-center gap-2 rounded-lg bg-[#006B3C] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#00552F]"
+                        >
+                            <LayoutDashboard :size="16" />
+                            ADMIN
+                        </a>
+
+                        <button
+                            type="button"
+                            :disabled="logoutForm.processing"
+                            class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-3 text-sm font-bold text-gray-700 transition hover:border-[#006B3C] hover:text-[#006B3C] disabled:opacity-50"
+                            @click="logout"
+                        >
+                            <LogOut :size="16" />
+                            LOGOUT
+                        </button>
+                    </template>
                 </nav>
 
-
-                <!-- =================================================
-                     MOBILE MENU BUTTON
-                ================================================== -->
+                <!-- MOBILE BUTTON -->
                 <button
                     type="button"
                     class="rounded-lg p-2 text-[#00351F] transition-colors hover:bg-gray-100 lg:hidden"
@@ -163,27 +174,13 @@ const closeMobileMenu = () => {
                     :aria-expanded="mobileOpen"
                     aria-label="Toggle navigation menu"
                 >
-                    <X
-                        v-if="mobileOpen"
-                        :size="28"
-                        stroke-width="2"
-                    />
-
-                    <Menu
-                        v-else
-                        :size="28"
-                        stroke-width="2"
-                    />
+                    <X v-if="mobileOpen" :size="28" stroke-width="2" />
+                    <Menu v-else :size="28" stroke-width="2" />
                 </button>
-
             </div>
-
         </div>
 
-
-        <!-- =========================================================
-             MOBILE NAVIGATION
-        ========================================================== -->
+        <!-- MOBILE NAVIGATION -->
         <Transition
             enter-active-class="transition duration-200 ease-out"
             enter-from-class="translate-y-[-10px] opacity-0"
@@ -192,103 +189,92 @@ const closeMobileMenu = () => {
             leave-from-class="translate-y-0 opacity-100"
             leave-to-class="translate-y-[-10px] opacity-0"
         >
-
             <div
                 v-if="mobileOpen"
                 class="border-b border-gray-200 bg-white shadow-xl lg:hidden"
             >
-
                 <nav class="mx-auto max-w-[1440px] px-5 py-5">
 
                     <div class="space-y-1">
-
-                        <a
-                            href="/"
-                            @click="closeMobileMenu"
-                            class="block rounded-lg px-4 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#087A3A]"
-                        >
-                            Home
-                        </a>
-
-                        <a
-                            href="/about"
-                            @click="closeMobileMenu"
-                            class="block rounded-lg px-4 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#087A3A]"
-                        >
-                            About
-                        </a>
-
-                        <a
-                            href="/alumni"
-                            @click="closeMobileMenu"
-                            class="block rounded-lg px-4 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#087A3A]"
-                        >
-                            Alumni
-                        </a>
-
-                        <a
-                            href="/events"
-                            @click="closeMobileMenu"
-                            class="block rounded-lg px-4 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#087A3A]"
-                        >
-                            Events
-                        </a>
-
-                        <a
-                            href="/news"
-                            @click="closeMobileMenu"
-                            class="block rounded-lg px-4 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#087A3A]"
-                        >
-                            News & Media
-                        </a>
-
-                        <a
-                            href="/projects"
-                            @click="closeMobileMenu"
-                            class="block rounded-lg px-4 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#087A3A]"
-                        >
-                            Projects
-                        </a>
-
-                        <a
-                            href="/resources"
-                            @click="closeMobileMenu"
-                            class="block rounded-lg px-4 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-[#087A3A]"
-                        >
-                            Resources
-                        </a>
-
+                        <a href="/" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">Home</a>
+                        <a href="/about" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">About</a>
+                        <a href="/alumni" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">Alumni</a>
+                        <a href="/events" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">Events</a>
+                        <a href="/news" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">News & Media</a>
+                        <a href="/projects" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">Projects</a>
+                        <a href="/resources" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">Resources</a>
+                        <a href="/gallery" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">Gallery</a>
+                        <a href="/contact" @click="closeMobileMenu" class="block rounded-lg px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">Contact</a>
                     </div>
 
-
-                    <!-- Mobile actions -->
                     <div class="mt-5 grid gap-3 sm:grid-cols-2">
 
-                        <a
-                            href="/login"
-                            @click="closeMobileMenu"
-                            class="inline-flex items-center justify-center gap-2 rounded-lg border border-[#087A3A] px-5 py-3 font-semibold text-[#087A3A] transition-colors hover:bg-[#087A3A] hover:text-white"
-                        >
-                            <UserRound :size="18" />
+                        <!-- Guest -->
+                        <template v-if="!isLoggedIn">
+                            <a
+                                href="/login"
+                                @click="closeMobileMenu"
+                                class="inline-flex items-center justify-center gap-2 rounded-lg border border-[#087A3A] px-5 py-3 font-semibold text-[#087A3A] hover:bg-[#087A3A] hover:text-white"
+                            >
+                                <UserRound :size="18" />
+                                Member Login
+                            </a>
 
-                            Member Login
-                        </a>
+                            <a
+                                href="/membership"
+                                @click="closeMobileMenu"
+                                class="inline-flex items-center justify-center rounded-lg bg-[#D4A72C] px-5 py-3 font-bold text-[#00351F] hover:bg-[#E5B93F]"
+                            >
+                                JOIN NOW
+                            </a>
+                        </template>
 
-                        <a
-                            href="/membership"
-                            @click="closeMobileMenu"
-                            class="inline-flex items-center justify-center rounded-lg bg-[#D4A72C] px-5 py-3 font-bold text-[#00351F] transition-colors hover:bg-[#E5B93F]"
-                        >
-                            JOIN NOW
-                        </a>
+                        <!-- Member -->
+                        <template v-else-if="!isAdmin">
+                            <a
+                                href="/dashboard"
+                                @click="closeMobileMenu"
+                                class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#006B3C] px-5 py-3 font-bold text-white"
+                            >
+                                <LayoutDashboard :size="18" />
+                                DASHBOARD
+                            </a>
 
+                            <button
+                                type="button"
+                                :disabled="logoutForm.processing"
+                                class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-5 py-3 font-bold text-gray-700 disabled:opacity-50"
+                                @click="logout"
+                            >
+                                <LogOut :size="18" />
+                                LOGOUT
+                            </button>
+                        </template>
+
+                        <!-- Admin -->
+                        <template v-else>
+                            <a
+                                href="/admin/dashboard"
+                                @click="closeMobileMenu"
+                                class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#006B3C] px-5 py-3 font-bold text-white"
+                            >
+                                <LayoutDashboard :size="18" />
+                                ADMIN DASHBOARD
+                            </a>
+
+                            <button
+                                type="button"
+                                :disabled="logoutForm.processing"
+                                class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-5 py-3 font-bold text-gray-700 disabled:opacity-50"
+                                @click="logout"
+                            >
+                                <LogOut :size="18" />
+                                LOGOUT
+                            </button>
+                        </template>
                     </div>
-
                 </nav>
-
             </div>
-
         </Transition>
-
     </header>
 </template>

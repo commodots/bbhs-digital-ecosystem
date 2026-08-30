@@ -1,9 +1,23 @@
-<template>
-    <footer
-    class="text-white"
-    style="background-color: #00351F;"
->
+<script setup>
+import { computed } from 'vue';
+import { usePage, useForm } from '@inertiajs/vue3';
+import { LogIn, LayoutDashboard, LogOut } from 'lucide-vue-next';
 
+const page = usePage();
+
+const user = computed(() => page.props.auth?.user ?? null);
+const isLoggedIn = computed(() => !!user.value);
+const isAdmin = computed(() => !!user.value?.is_admin);
+
+const logoutForm = useForm({});
+
+const logout = () => {
+    logoutForm.post('/logout');
+};
+</script>
+
+<template>
+    <footer class="text-white" style="background-color: #00351F;">
         <div class="mx-auto max-w-[1440px] px-6 py-14 lg:px-8">
 
             <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
@@ -11,10 +25,10 @@
                 <!-- Brand -->
                 <div>
                     <img
-						:src="'/images/bbhs/logo/bbhs-logo.png'"
-						alt="BBHS Old Boys Association"
-						class="mb-5 h-20 w-20 object-contain"
-					>
+                        :src="'/images/bbhs/logo/bbhs-logo.png'"
+                        alt="BBHS Old Boys Association"
+                        class="mb-5 h-20 w-20 object-contain"
+                    >
 
                     <h3 class="text-lg font-bold">
                         Baptist Boys' High School
@@ -36,21 +50,10 @@
                     <h3 class="font-bold">Quick Links</h3>
 
                     <div class="mt-5 space-y-3 text-sm text-white/75">
-                        <a href="/about" class="block hover:text-bbhs-gold-300">
-                            About Us
-                        </a>
-
-                        <a href="/alumni" class="block hover:text-bbhs-gold-300">
-                            Alumni
-                        </a>
-
-                        <a href="/events" class="block hover:text-bbhs-gold-300">
-                            Events & Reunions
-                        </a>
-
-                        <a href="/projects" class="block hover:text-bbhs-gold-300">
-                            Projects
-                        </a>
+                        <a href="/about" class="block hover:text-bbhs-gold-300">About Us</a>
+                        <a href="/alumni" class="block hover:text-bbhs-gold-300">Alumni</a>
+                        <a href="/events" class="block hover:text-bbhs-gold-300">Events & Reunions</a>
+                        <a href="/projects" class="block hover:text-bbhs-gold-300">Projects</a>
                     </div>
                 </div>
 
@@ -59,21 +62,10 @@
                     <h3 class="font-bold">Resources</h3>
 
                     <div class="mt-5 space-y-3 text-sm text-white/75">
-                        <a href="/news" class="block hover:text-bbhs-gold-300">
-                            News & Media
-                        </a>
-
-                        <a href="/gallery" class="block hover:text-bbhs-gold-300">
-                            Gallery
-                        </a>
-
-                        <a href="/constitution" class="block hover:text-bbhs-gold-300">
-                            Constitution
-                        </a>
-
-                        <a href="/faqs" class="block hover:text-bbhs-gold-300">
-                            FAQs
-                        </a>
+                        <a href="/news" class="block hover:text-bbhs-gold-300">News & Media</a>
+                        <a href="/gallery" class="block hover:text-bbhs-gold-300">Gallery</a>
+                        <a href="/resources" class="block hover:text-bbhs-gold-300">Resources</a>
+                        <a href="/contact" class="block hover:text-bbhs-gold-300">Contact Us</a>
                     </div>
                 </div>
 
@@ -86,14 +78,62 @@
                         events, connections and exclusive resources.
                     </p>
 
+                    <!-- Guest -->
                     <a
+                        v-if="!isLoggedIn"
                         href="/login"
-                        class="mt-6 inline-block rounded-lg bg-bbhs-gold-500 px-5 py-3 text-sm font-bold text-bbhs-950 transition hover:bg-bbhs-gold-400"
+                        class="mt-6 inline-flex items-center gap-2 rounded-lg bg-bbhs-gold-500 px-5 py-3 text-sm font-bold text-bbhs-950 transition hover:bg-bbhs-gold-400"
                     >
+                        <LogIn :size="16" />
                         MEMBER LOGIN
                     </a>
-                </div>
 
+                    <!-- Member -->
+                    <template v-else-if="!isAdmin">
+                        <div class="mt-6 flex flex-wrap gap-2">
+                            <a
+                                href="/dashboard"
+                                class="inline-flex items-center gap-2 rounded-lg bg-bbhs-gold-500 px-4 py-3 text-sm font-bold text-bbhs-950 transition hover:bg-bbhs-gold-400"
+                            >
+                                <LayoutDashboard :size="16" />
+                                DASHBOARD
+                            </a>
+
+                            <button
+                                type="button"
+                                :disabled="logoutForm.processing"
+                                class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-3 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
+                                @click="logout"
+                            >
+                                <LogOut :size="16" />
+                                LOGOUT
+                            </button>
+                        </div>
+                    </template>
+
+                    <!-- Admin -->
+                    <template v-else>
+                        <div class="mt-6 flex flex-wrap gap-2">
+                            <a
+                                href="/admin/dashboard"
+                                class="inline-flex items-center gap-2 rounded-lg bg-bbhs-gold-500 px-4 py-3 text-sm font-bold text-bbhs-950 transition hover:bg-bbhs-gold-400"
+                            >
+                                <LayoutDashboard :size="16" />
+                                ADMIN DASHBOARD
+                            </a>
+
+                            <button
+                                type="button"
+                                :disabled="logoutForm.processing"
+                                class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-3 text-sm font-bold text-white hover:bg-white/10 disabled:opacity-50"
+                                @click="logout"
+                            >
+                                <LogOut :size="16" />
+                                LOGOUT
+                            </button>
+                        </div>
+                    </template>
+                </div>
             </div>
 
             <div class="mt-12 border-t border-green-800 pt-6 text-sm text-green-200">
@@ -102,6 +142,5 @@
             </div>
 
         </div>
-
     </footer>
 </template>
