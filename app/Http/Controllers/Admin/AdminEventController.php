@@ -10,20 +10,13 @@ use Inertia\Inertia;
 
 class AdminEventController extends Controller
 {
-    /**
-     * Display all events.
-     */
     public function index()
     {
         return Inertia::render('Admin/Events/Index', [
-            'events' => Event::orderBy('starts_at')
-                ->paginate(15),
+            'events' => Event::latest()->paginate(15),
         ]);
     }
 
-    /**
-     * Show create event form.
-     */
     public function create()
     {
         return Inertia::render('Admin/Events/Form', [
@@ -31,19 +24,11 @@ class AdminEventController extends Controller
         ]);
     }
 
-    /**
-     * Store a new event.
-     */
     public function store(Request $request)
     {
         $data = $this->validateData($request);
 
         $data['slug'] = $this->uniqueSlug($data['title']);
-
-        $data['published'] = (bool) ($data['published'] ?? false);
-
-        $data['registration_open'] =
-            (bool) ($data['registration_open'] ?? false);
 
         Event::create($data);
 
@@ -52,9 +37,6 @@ class AdminEventController extends Controller
             ->with('success', 'Event created successfully.');
     }
 
-    /**
-     * Show edit event form.
-     */
     public function edit(Event $event)
     {
         return Inertia::render('Admin/Events/Form', [
@@ -62,25 +44,14 @@ class AdminEventController extends Controller
         ]);
     }
 
-    /**
-     * Update an existing event.
-     */
-    public function update(
-        Request $request,
-        Event $event
-    ) {
+    public function update(Request $request, Event $event)
+    {
         $data = $this->validateData($request);
 
         $data['slug'] = $this->uniqueSlug(
             $data['title'],
             $event->id
         );
-
-        $data['published'] =
-            (bool) ($data['published'] ?? false);
-
-        $data['registration_open'] =
-            (bool) ($data['registration_open'] ?? false);
 
         $event->update($data);
 
@@ -89,9 +60,6 @@ class AdminEventController extends Controller
             ->with('success', 'Event updated successfully.');
     }
 
-    /**
-     * Delete an event.
-     */
     public function destroy(Event $event)
     {
         $event->delete();
@@ -102,36 +70,19 @@ class AdminEventController extends Controller
         );
     }
 
-    /**
-     * Validate event data.
-     */
     private function validateData(Request $request): array
     {
         return $request->validate([
-            'title' => [
-                'required',
-                'string',
-                'max:255',
-            ],
+            'title' => ['required', 'string', 'max:255'],
 
-            'excerpt' => [
-                'nullable',
-                'string',
-                'max:500',
-            ],
+            'excerpt' => ['nullable', 'string', 'max:500'],
 
-            'description' => [
-                'nullable',
-                'string',
-            ],
+            'description' => ['nullable', 'string'],
 
-            'image' => [
-                'nullable',
-                'string',
-                'max:500',
-            ],
+            'image' => ['nullable', 'string', 'max:500'],
 
             'starts_at' => [
+                'required_if:published,1',
                 'nullable',
                 'date',
             ],
@@ -142,56 +93,26 @@ class AdminEventController extends Controller
                 'after_or_equal:starts_at',
             ],
 
-            'venue' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
+            'venue' => ['nullable', 'string', 'max:255'],
 
-            'location' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
+            'location' => ['nullable', 'string', 'max:255'],
 
-            'capacity' => [
-                'nullable',
-                'integer',
-                'min:1',
-            ],
+            'capacity' => ['nullable', 'integer', 'min:1'],
 
-            'registration_open' => [
-                'nullable',
-                'boolean',
-            ],
+            'registration_open' => ['nullable', 'boolean'],
 
-            'published' => [
-                'nullable',
-                'boolean',
-            ],
+            'published' => ['nullable', 'boolean'],
         ]);
     }
 
-    /**
-     * Generate a unique slug.
-     */
     private function uniqueSlug(
         string $title,
         ?int $ignoreId = null
     ): string {
         $base = Str::slug($title);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent empty slug
-        |--------------------------------------------------------------------------
-        */
-
-        if (empty($base)) {
-            $base = 'event';
-        }
-
         $slug = $base;
+
         $counter = 1;
 
         while (
