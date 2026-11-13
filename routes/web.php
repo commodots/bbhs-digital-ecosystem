@@ -43,6 +43,7 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\HistoricalArchiveController;
+use App\Http\Controllers\ChaptersController;
 
 /*
 |--------------------------------------------------------------------------
