@@ -19,7 +19,7 @@ const moreExpanded = ref(null);
 const navArea = ref(null);
 const moreButton = ref(null);
 const measureRefs = ref([]);
-const visibleCount = ref(7);
+const visibleCount = ref(8);
 let navResizeObserver = null;
 
 const navItems = [
@@ -31,6 +31,11 @@ const navItems = [
     { key: 'alumni', label: 'Alumni', items: [
         { label: 'Alumni', href: '/alumni' },
         { label: 'Alumni Directory', href: '/alumni-directory' },
+    ] },
+    { key: 'community', label: 'Community', items: [
+        { label: 'Mentorship', href: '/mentorship' },
+        { label: 'Careers & Opportunities', href: '/careers' },
+        { label: 'Chapters & Branches', href: '/chapters' },
     ] },
     { key: 'media', label: 'Media', items: [
         { label: 'News & Updates', href: '/news' },
@@ -317,6 +322,9 @@ onBeforeUnmount(() => {
                             <a href="/about" class="block hover:text-[#D4A72C]">About Us</a>
                             <a href="/executives" class="block hover:text-[#D4A72C]">National Executives</a>
                             <a href="/alumni" class="block hover:text-[#D4A72C]">Alumni</a>
+                            <a href="/mentorship" class="block hover:text-[#D4A72C]">Mentorship</a>
+                            <a href="/careers" class="block hover:text-[#D4A72C]">Careers & Opportunities</a>
+                            <a href="/chapters" class="block hover:text-[#D4A72C]">Chapters & Branches</a>
                             <a href="/events" class="block hover:text-[#D4A72C]">Events & Reunions</a>
                             <a href="/projects" class="block hover:text-[#D4A72C]">Projects</a>
                             <a href="/fundraising" class="block hover:text-[#D4A72C]">Fundraising</a>

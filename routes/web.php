@@ -76,6 +76,16 @@ Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])
 Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 
 Route::get('/about', fn () => Inertia::render('About'))->name('about');
+
+// Community pages
+Route::get('/mentorship', fn () => Inertia::render('Mentorship'))->name('mentorship');
+Route::get('/careers', fn () => Inertia::render('Careers'))->name('careers');
+Route::get('/chapters', fn () => Inertia::render('Chapters'))->name('chapters');
+
+// Preserve older mixed-case links by redirecting to canonical lowercase URLs.
+Route::redirect('/Mentorship', '/mentorship', 301);
+Route::redirect('/Careers', '/careers', 301);
+Route::redirect('/Chapters', '/chapters', 301);
 Route::get('/alumni', [AlumniLandingController::class, 'index'])->name('alumni');
 Route::get('/executives', [\App\Http\Controllers\NationalExecutivesController::class, 'index'])->name('executives');
 Route::get('/events', [EventController::class, 'index'])->name('events');

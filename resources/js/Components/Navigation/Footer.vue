@@ -52,6 +52,9 @@ const logout = () => {
                     <div class="mt-5 space-y-3 text-sm text-white/75">
                         <a href="/about" class="block hover:text-bbhs-gold-300">About Us</a>
                         <a href="/alumni" class="block hover:text-bbhs-gold-300">Alumni</a>
+                        <a href="/mentorship" class="block hover:text-bbhs-gold-300">Mentorship</a>
+                        <a href="/careers" class="block hover:text-bbhs-gold-300">Careers & Opportunities</a>
+                        <a href="/chapters" class="block hover:text-bbhs-gold-300">Chapters & Branches</a>
                         <a href="/events" class="block hover:text-bbhs-gold-300">Events & Reunions</a>
                         <a href="/projects" class="block hover:text-bbhs-gold-300">Projects</a>
                     </div>
