@@ -20,20 +20,55 @@ class BbhsOrganisationSeeder extends Seeder
             );
         }
 
+        // Eight BBHS branches recorded from the Association's 2025 brochure.
+        // Only confirmed city mappings are added here; regional/international
+        // branches remain unmapped until their exact coverage cities are verified.
         $branchDefinitions = [
-            'Lagos Branch' => [['Lagos', 'Nigeria']],
-            'Abeokuta Branch' => [['Abeokuta', 'Nigeria']],
-            'Abuja Branch' => [['Abuja', 'Nigeria']],
-            'Ibadan Branch' => [['Ibadan', 'Nigeria']],
+            'Lagos Branch' => [
+                'description' => 'Lagos, Nigeria',
+                'cities' => [['Lagos', 'Nigeria']],
+            ],
+            'Abeokuta Branch' => [
+                'description' => 'Abeokuta, Ogun State, Nigeria',
+                'cities' => [['Abeokuta', 'Nigeria']],
+            ],
+            'Abuja Branch' => [
+                'description' => 'Abuja, Nigeria',
+                'cities' => [['Abuja', 'Nigeria']],
+            ],
+            'Ibadan Branch' => [
+                'description' => 'Ibadan, Oyo State, Nigeria',
+                'cities' => [['Ibadan', 'Nigeria']],
+            ],
+            'Ijebu/Remo Branch' => [
+                'description' => 'Ijebu/Remo area, Ogun State, Nigeria',
+                'cities' => [],
+            ],
+            'Ota Branch' => [
+                'description' => 'Ota, Ogun State, Nigeria',
+                'cities' => [['Ota', 'Nigeria']],
+            ],
+            'UK/Ireland Branch' => [
+                'description' => 'United Kingdom and Ireland',
+                'cities' => [],
+            ],
+            'US/Canada Branch' => [
+                'description' => 'United States and Canada',
+                'cities' => [],
+            ],
         ];
 
-        foreach ($branchDefinitions as $branchName => $cities) {
+        foreach ($branchDefinitions as $branchName => $definition) {
             $branch = Branch::updateOrCreate(
                 ['slug' => Str::slug($branchName)],
-                ['name' => $branchName, 'is_active' => true]
+                [
+                    'name' => $branchName,
+                    'description' => $definition['description'],
+                    'is_active' => true,
+                ]
             );
 
-            foreach ($cities as [$city, $country]) {
+            foreach ($definition['cities'] as [$city, $country]) {
                 BranchCity::updateOrCreate(
                     [
                         'branch_id' => $branch->id,

@@ -80,7 +80,7 @@ Route::get('/about', fn () => Inertia::render('About'))->name('about');
 // Community pages
 Route::get('/mentorship', fn () => Inertia::render('Mentorship'))->name('mentorship');
 Route::get('/careers', fn () => Inertia::render('Careers'))->name('careers');
-Route::get('/chapters', fn () => Inertia::render('Chapters'))->name('chapters');
+Route::get('/chapters', [ChaptersController::class, 'index'])->name('chapters');
 
 // Preserve older mixed-case links by redirecting to canonical lowercase URLs.
 Route::redirect('/Mentorship', '/mentorship', 301);
