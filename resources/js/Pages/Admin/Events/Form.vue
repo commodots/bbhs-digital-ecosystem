@@ -1,12 +1,14 @@
 <script setup>
 import PublicLayout from '../../../Layouts/PublicLayout.vue';
+import AdminQuickLinks from '../../../Components/AdminQuickLinks.vue';
 import { useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps({
-    event: {
-        type: Object,
-        default: null,
-    },
+    event: { type: Object, default: null },
+    sets: { type: Array, default: () => [] },
+    branches: { type: Array, default: () => [] },
+    selectedScopes: { type: Array, default: () => [] },
 });
 
 /*
@@ -74,14 +76,19 @@ const form = useForm({
     description: props.event?.description ?? '',
 
     image: props.event?.image ?? '',
+    image_file: null,
 
     registration_open: Boolean(
         props.event?.registration_open
     ),
 
-    published: Boolean(
-        props.event?.published
-    ),
+    published: Boolean(props.event?.published),
+    scope_type: props.event?.scope_type ?? 'global',
+    graduation_set_id: props.event?.graduation_set_id ?? '',
+    branch_id: props.event?.branch_id ?? '',
+    target_scopes: [...(props.selectedScopes ?? [])],
+    requires_registration: props.event?.requires_registration ?? true,
+    allow_non_branch_residents: props.event?.allow_non_branch_residents ?? true,
 });
 
 
@@ -96,6 +103,23 @@ const form = useForm({
 |
 |--------------------------------------------------------------------------
 */
+
+const imagePreview = ref(
+    props.event?.image
+        ? (String(props.event.image).startsWith('http')
+            ? props.event.image
+            : `/storage/${String(props.event.image).replace(/^\/+/, '')}`)
+        : null
+);
+
+const handleImageUpload = (event) => {
+    const file = event.target.files?.[0] ?? null;
+    form.image_file = file;
+    if (file) {
+        imagePreview.value = URL.createObjectURL(file);
+        form.image = '';
+    }
+};
 
 const submit = () => {
 
@@ -159,9 +183,10 @@ const submit = () => {
 
     if (props.event) {
 
-        form.put(
+        form.transform((data) => ({ ...data, _method: 'put' })).post(
             `/admin/events/${props.event.id}`,
             {
+                forceFormData: true,
                 preserveScroll: true,
 
                 onSuccess: () => {
@@ -197,6 +222,7 @@ const submit = () => {
     form.post(
         '/admin/events',
         {
+            forceFormData: true,
             preserveScroll: true,
 
             onSuccess: () => {
@@ -257,6 +283,7 @@ const submit = () => {
 
         </div>
 
+    <AdminQuickLinks />
     </section>
 
 
@@ -306,6 +333,49 @@ const submit = () => {
 
                     </div>
 
+
+                    <!-- EVENT AUDIENCE / ORGANISATIONAL SCOPE -->
+                    <div class="sm:col-span-2 rounded-xl border border-[#DCE8E0] bg-[#F7FAF8] p-5">
+                        <h2 class="font-bold text-[#00351F]">Event Audience</h2>
+                        <p class="mt-1 text-sm text-gray-500">Choose who this event is intended for.</p>
+                        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                            <label class="flex items-center gap-2 text-sm"><input v-model="form.scope_type" type="radio" value="global"/> National / Global – all members</label>
+                            <label class="flex items-center gap-2 text-sm"><input v-model="form.scope_type" type="radio" value="set"/> Graduation set</label>
+                            <label class="flex items-center gap-2 text-sm"><input v-model="form.scope_type" type="radio" value="branch"/> Geographical branch</label>
+                            <label class="flex items-center gap-2 text-sm"><input v-model="form.scope_type" type="radio" value="joint"/> Joint event – multiple sets/branches</label>
+                        </div>
+                        <div v-if="form.scope_type === 'set'" class="mt-4">
+                            <label class="mb-2 block text-sm font-semibold">Graduation set</label>
+                            <select v-model="form.graduation_set_id" class="w-full rounded-lg border-gray-200">
+                                <option value="">Select graduation set</option>
+                                <option v-for="set in sets" :key="set.id" :value="set.id">{{set.name}} ({{set.graduation_year}})</option>
+                            </select>
+                            <p v-if="form.errors.graduation_set_id" class="mt-1 text-xs text-red-600">{{form.errors.graduation_set_id}}</p>
+                        </div>
+                        <div v-if="form.scope_type === 'branch'" class="mt-4">
+                            <label class="mb-2 block text-sm font-semibold">Branch</label>
+                            <select v-model="form.branch_id" class="w-full rounded-lg border-gray-200">
+                                <option value="">Select branch</option>
+                                <option v-for="branch in branches" :key="branch.id" :value="branch.id">{{branch.name}}</option>
+                            </select>
+                            <p v-if="form.errors.branch_id" class="mt-1 text-xs text-red-600">{{form.errors.branch_id}}</p>
+                        </div>
+                        <div v-if="form.scope_type === 'joint'" class="mt-4">
+                            <p class="mb-2 text-sm font-semibold">Select participating sets and branches</p>
+                            <div class="grid gap-2 sm:grid-cols-2">
+                                <label v-for="set in sets" :key="'set-'+set.id" class="flex items-center gap-2 rounded-lg bg-white p-2 text-sm">
+                                    <input v-model="form.target_scopes" type="checkbox" :value="'set:'+set.id"/> {{set.name}} ({{set.graduation_year}})
+                                </label>
+                                <label v-for="branch in branches" :key="'branch-'+branch.id" class="flex items-center gap-2 rounded-lg bg-white p-2 text-sm">
+                                    <input v-model="form.target_scopes" type="checkbox" :value="'branch:'+branch.id"/> {{branch.name}}
+                                </label>
+                            </div>
+                            <p v-if="form.errors.target_scopes" class="mt-1 text-xs text-red-600">{{form.errors.target_scopes}}</p>
+                        </div>
+                        <label v-if="form.scope_type === 'branch'" class="mt-4 flex items-center gap-2 text-sm">
+                            <input v-model="form.allow_non_branch_residents" type="checkbox"/> Include approved members living in the branch's mapped cities, even if they are not formal branch members
+                        </label>
+                    </div>
 
                     <!-- =================================================
                          START DATE / TIME
@@ -463,38 +533,41 @@ const submit = () => {
                     </div>
 
 
-                    <!-- =================================================
-                         IMAGE
-                    ================================================== -->
-
-                    <div>
-
-                        <label
-                            class="mb-2 block text-sm font-semibold text-[#00351F]"
-                        >
+                    <!-- EVENT IMAGE UPLOAD -->
+                    <div class="sm:col-span-2">
+                        <label class="mb-2 block text-sm font-semibold text-[#00351F]">
                             Event Image
                         </label>
-
                         <input
-                            v-model="form.image"
-                            type="text"
-                            class="w-full rounded-lg border border-gray-200 px-4 py-3"
-                            placeholder="/images/bbhs/events/event.jpg"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            @change="handleImageUpload"
+                            class="w-full rounded-lg border border-gray-200 px-4 py-3 file:mr-4 file:rounded-md file:border-0 file:bg-[#EAF3ED] file:px-4 file:py-2 file:font-semibold file:text-[#006B3C]"
                         />
-
-                        <p
-                            class="mt-1 text-xs text-gray-400"
-                        >
-                            Image path for the event.
+                        <p class="mt-1 text-xs text-gray-400">
+                            Upload JPG, PNG or WebP. Maximum file size: 5 MB.
                         </p>
-
-                        <p
-                            v-if="form.errors.image"
-                            class="mt-1 text-xs text-red-600"
-                        >
-                            {{ form.errors.image }}
+                        <p v-if="form.errors.image_file" class="mt-1 text-xs text-red-600">
+                            {{ form.errors.image_file }}
                         </p>
-
+                        <div v-if="imagePreview" class="mt-4 max-w-md">
+                            <p class="mb-2 text-xs font-semibold text-gray-600">Image preview</p>
+                            <img :src="imagePreview" alt="Event image preview" class="h-48 w-full rounded-xl border border-gray-200 object-cover" />
+                        </div>
+                        <div class="mt-4">
+                            <label class="mb-2 block text-xs font-semibold text-gray-600">
+                                Or use an existing image URL (optional)
+                            </label>
+                            <input
+                                v-model="form.image"
+                                type="url"
+                                class="w-full rounded-lg border border-gray-200 px-4 py-3"
+                                placeholder="events/filename.jpg or https://example.com/image.jpg"
+                            />
+                            <p v-if="form.errors.image" class="mt-1 text-xs text-red-600">
+                                {{ form.errors.image }}
+                            </p>
+                        </div>
                     </div>
 
 
@@ -574,6 +647,11 @@ const submit = () => {
 
                         </label>
 
+
+                        <label class="flex items-center gap-3 text-sm font-semibold text-[#00351F]">
+                            <input v-model="form.requires_registration" type="checkbox" class="rounded"/>
+                            Require member registration
+                        </label>
 
                         <label
                             class="flex items-center gap-3 text-sm font-semibold text-[#00351F]"

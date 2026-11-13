@@ -1,5 +1,6 @@
 <script setup>
 import PublicLayout from '../../../Layouts/PublicLayout.vue';
+import AdminQuickLinks from '../../../Components/AdminQuickLinks.vue';
 import { useForm } from '@inertiajs/vue3';
 
 const props = defineProps({ news: { type: Object, default: null } });
@@ -24,7 +25,8 @@ const submit = () => {
 
 <template>
 <PublicLayout>
-<section class="bg-[#00351F]"><div class="mx-auto max-w-[1100px] px-5 py-12 lg:px-8"><p class="text-xs font-bold uppercase tracking-[0.22em] text-[#D4A72C]">Administration</p><h1 class="mt-2 text-3xl font-extrabold text-white">{{ news ? 'Edit News' : 'New Article' }}</h1></div></section>
+<section class="bg-[#00351F]"><div class="mx-auto max-w-[1100px] px-5 py-12 lg:px-8"><p class="text-xs font-bold uppercase tracking-[0.22em] text-[#D4A72C]">Administration</p><h1 class="mt-2 text-3xl font-extrabold text-white">{{ news ? 'Edit News' : 'New Article' }}</h1></div><AdminQuickLinks />
+    </section>
 
 <section class="bg-[#F7F9F7] py-10">
 <div class="mx-auto max-w-[1100px] px-5 lg:px-8">

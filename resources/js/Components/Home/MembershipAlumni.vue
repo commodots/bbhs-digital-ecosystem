@@ -1,23 +1,7 @@
 <script setup>
 import { ArrowRight, Award, Globe2, UsersRound } from 'lucide-vue-next';
 
-const alumni = [
-    {
-        name: 'Oyewole Seun',
-        classSet: 'BBHS Old Boy',
-        image: '/images/bbhs/alumni/oyewole-seun.jpg',
-    },
-    {
-        name: 'Otunba Gbega Daniel',
-        classSet: 'BBHS Old Boy',
-        image: '/images/bbhs/alumni/otunba-gbenga-daniel.jpg',
-    },
-    {
-        name: 'Otunba Wole Okunowo',
-        classSet: 'BBHS Old Boy',
-        image: '/images/bbhs/alumni/otunba-wole-okunowo.jpg',
-    },
-];
+const props = defineProps({ spotlights: { type: Array, default: () => [] } });
 </script>
 
 <template>
@@ -190,8 +174,8 @@ const alumni = [
                     <div class="mt-6 grid gap-4 sm:grid-cols-3">
 
                         <article
-                            v-for="person in alumni"
-                            :key="person.name"
+                            v-for="person in spotlights"
+                            :key="person.id"
                             class="group overflow-hidden rounded-xl bg-white shadow-sm"
                         >
 
@@ -212,11 +196,9 @@ const alumni = [
 
                             <div class="p-4">
 
-                                <h3
-                                    class="text-sm font-bold text-[#00351F]"
-                                >
-                                    {{ person.name }}
-                                </h3>
+                                <a :href="person.profileUrl" class="text-sm font-bold text-[#00351F] hover:text-[#087A3A]">{{ person.name }}</a>
+                                <p v-if="person.headline" class="mt-1 text-xs font-semibold text-[#087A3A]">{{ person.headline }}</p>
+                                <p v-if="person.writeup" class="mt-2 line-clamp-3 text-xs leading-5 text-gray-600">{{ person.writeup }}</p>
 
                                 <p
                                     class="mt-1 text-xs text-gray-500"
@@ -230,6 +212,8 @@ const alumni = [
 
                     </div>
 
+
+                    <p v-if="!spotlights.length" class="mt-6 rounded-xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-500">Alumni spotlights will appear here when selected by the Association.</p>
 
                     <!-- Mobile alumni link -->
 

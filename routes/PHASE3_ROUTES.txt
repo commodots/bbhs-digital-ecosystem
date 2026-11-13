@@ -1,0 +1,43 @@
+PHASE 3 ROUTE CHANGES
+=====================
+
+1. Add this import near the other controller imports in routes/web.php:
+
+use App\Http\Controllers\Admin\MembershipVerificationController;
+
+2. Replace the existing GET /register route:
+
+Route::get('/register', fn () => Inertia::render('Register'))->name('register');
+
+with:
+
+Route::get('/register', [MemberRegistrationController::class, 'create'])->name('register');
+
+3. Add this route group in routes/web.php (outside the existing ['auth', 'admin']
+   group, because set/branch executives are not global administrators):
+
+Route::middleware(['auth', 'executive'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/verifications', [MembershipVerificationController::class, 'index'])
+            ->name('verifications.index');
+
+        Route::post('/verifications/{verification}/approve', [MembershipVerificationController::class, 'approve'])
+            ->name('verifications.approve');
+
+        Route::post('/verifications/{verification}/reject', [MembershipVerificationController::class, 'reject'])
+            ->name('verifications.reject');
+    });
+
+The existing /admin/members routes remain in place. The old global "Approve" action
+is deliberately disabled as an approval bypass; it now directs administrators to
+the authoritative set-verification queue.
+
+
+4. Add this route inside the existing auth + executive group:
+
+Route::post('/verifications/remind', [MembershipVerificationController::class, 'remind'])
+    ->name('verifications.remind');
+
+This action is restricted in the controller to Super Admin users.

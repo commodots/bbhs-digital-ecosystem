@@ -1,8 +1,12 @@
 <script setup>
-import { LayoutDashboard, Users, Newspaper, CalendarDays, FolderKanban, ArrowLeft, UserRound } from 'lucide-vue-next';
+import { LayoutDashboard, Users, Newspaper, CalendarDays, FolderKanban, ArrowLeft, UserRound, Network, ClipboardCheck, Star } from 'lucide-vue-next';
 const items = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Members', href: '/admin/members', icon: Users },
+    { label: 'Alumni Spotlight', href: '/admin/spotlights', icon: Star },
+    { label: 'Alumni Spotlight', href: '/admin/spotlights', icon: Star },
+    { label: 'Organisation', href: '/admin/organisation', icon: Network },
+    { label: 'Verifications', href: '/admin/verifications', icon: ClipboardCheck },
     { label: 'News', href: '/admin/news', icon: Newspaper },
     { label: 'Events', href: '/admin/events', icon: CalendarDays },
     { label: 'Projects', href: '/admin/projects', icon: FolderKanban },

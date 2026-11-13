@@ -1,16 +1,10 @@
 <script setup>
-import {
-    ArrowRight,
-    Mail,
-    Facebook,
-    Instagram,
-    Linkedin,
-    Youtube,
-} from 'lucide-vue-next';
-
-const submitNewsletter = () => {
-    // Laravel newsletter endpoint will be connected later.
-};
+import { ref } from 'vue';
+import { useForm, usePage } from '@inertiajs/vue3';
+import { ArrowRight, Mail, Facebook, Instagram, Linkedin, Youtube } from 'lucide-vue-next';
+const page = usePage();
+const form = useForm({ email: '' });
+const submitNewsletter = () => form.post('/newsletter/subscribe', { preserveScroll: true, onSuccess: () => form.reset('email') });
 </script>
 
 <template>
@@ -92,8 +86,10 @@ const submitNewsletter = () => {
 
                                 <input
                                     id="newsletter-email"
+                                    v-model="form.email"
                                     type="email"
                                     required
+                                    autocomplete="email"
                                     placeholder="Enter your email address"
                                     class="min-w-0 flex-1 border-0 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-0"
                                 />
@@ -105,7 +101,7 @@ const submitNewsletter = () => {
                                 type="submit"
                                 class="group inline-flex items-center justify-center gap-2 rounded-lg bg-[#D4A72C] px-6 py-3 font-bold text-[#00351F] transition hover:bg-[#E5B93F]"
                             >
-                                SUBSCRIBE
+                                {{ form.processing ? 'SUBSCRIBING...' : 'SUBSCRIBE' }}
 
                                 <ArrowRight
                                     :size="17"
@@ -115,9 +111,9 @@ const submitNewsletter = () => {
 
                         </div>
 
-                        <p class="mt-2 text-[11px] text-white/45">
-                            We respect your privacy. Unsubscribe at any time.
-                        </p>
+                        <p v-if="page.props.flash?.newsletter_success" class="mt-2 text-xs font-semibold text-green-200">{{ page.props.flash.newsletter_success }}</p>
+                        <p v-if="form.errors.email" class="mt-2 text-xs font-semibold text-red-200">{{ form.errors.email }}</p>
+                        <p v-else class="mt-2 text-[11px] text-white/45">We respect your privacy. Unsubscribe at any time.</p>
 
                     </form>
 

@@ -1,5 +1,6 @@
 <script setup>
 import PublicLayout from '../../../Layouts/PublicLayout.vue';
+import AdminQuickLinks from '../../../Components/AdminQuickLinks.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import {
     Search,
@@ -81,7 +82,8 @@ const statusClass = (status) => ({
             </div>
         </div>
     </div>
-</section>
+<AdminQuickLinks />
+    </section>
 
 <section class="bg-[#F7F9F7] py-10">
 <div class="mx-auto max-w-[1400px] px-5 lg:px-8">

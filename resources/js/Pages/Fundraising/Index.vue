@@ -1,0 +1,11 @@
+<script setup>
+import PublicLayout from '../../Layouts/PublicLayout.vue';
+import { Head } from '@inertiajs/vue3';
+defineProps({ campaigns: Object });
+const money = v => '₦' + Number(v || 0).toLocaleString('en-NG', { maximumFractionDigits: 0 });
+</script>
+<template>
+<PublicLayout><Head title="Fundraising & Donations"/>
+<section class="bg-[#00351F] text-white"><div class="mx-auto max-w-7xl px-5 py-12"><p class="text-xs font-bold uppercase tracking-widest text-[#D4A72C]">Give back • Build the future</p><h1 class="mt-2 text-3xl font-extrabold md:text-4xl">BBHS Fundraising Centre</h1><p class="mt-3 max-w-2xl text-sm leading-7 text-white/75">Support projects and initiatives that strengthen our school, our brotherhood and future generations.</p></div></section>
+<section class="mx-auto max-w-7xl px-5 py-10"><div v-if="campaigns.data.length" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"><article v-for="c in campaigns.data" :key="c.id" class="overflow-hidden rounded-2xl border bg-white shadow-sm"><img :src="c.image" :alt="c.title" class="h-48 w-full object-cover"/><div class="p-5"><span class="text-xs font-bold uppercase text-[#087A3A]">{{c.category || c.scope_type}}</span><h2 class="mt-2 text-xl font-extrabold text-[#00351F]">{{c.title}}</h2><p class="mt-2 line-clamp-3 text-sm leading-6 text-gray-600">{{c.excerpt}}</p><div class="mt-5 flex justify-between text-sm"><b>{{money(c.raised_amount)}} raised</b><span class="text-gray-500">Target {{money(c.target_amount)}}</span></div><div class="mt-2 h-2 overflow-hidden rounded-full bg-gray-100"><div class="h-full rounded-full bg-[#087A3A]" :style="{width:c.progress+'%'}"></div></div><div class="mt-2 text-xs text-gray-500">{{c.progress}}% of target • {{c.donor_count}} donations</div><a :href="`/fundraising/${c.slug}`" class="mt-5 inline-flex rounded-lg bg-[#006B3C] px-4 py-3 text-sm font-bold text-white">View campaign & donate</a></div></article></div><div v-else class="rounded-2xl border bg-gray-50 p-10 text-center"><h2 class="text-xl font-bold text-[#00351F]">No active campaigns yet</h2><p class="mt-2 text-sm text-gray-600">Please check back soon for BBHS fundraising initiatives.</p></div></section></PublicLayout>
+</template>

@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+			'executive' => \App\Http\Middleware\ExecutiveAccessMiddleware::class,
         ]);
     })
 

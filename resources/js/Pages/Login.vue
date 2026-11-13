@@ -44,7 +44,7 @@ const submit = () => form.post('/login');
                     </div>
 
                     <div>
-                        <div class="mb-2 flex justify-between"><label class="text-sm font-semibold text-gray-700">Password</label><a href="#" class="text-xs font-bold text-[#006B3C]">Forgot password?</a></div>
+                        <div class="mb-2 flex justify-between"><label class="text-sm font-semibold text-gray-700">Password</label><a href="/forgot-password" class="text-xs font-bold text-[#006B3C]">Forgot password?</a></div>
                         <div class="relative">
                             <LockKeyhole :size="17" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="w-full rounded-lg border-gray-200 py-3 pl-10 pr-20 text-sm" placeholder="Your password" />

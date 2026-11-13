@@ -14,6 +14,8 @@ return [
     |
     */
 
+    'paystack' => ['secret_key' => env('PAYSTACK_SECRET_KEY')],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

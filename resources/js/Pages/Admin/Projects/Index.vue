@@ -1,5 +1,6 @@
 <script setup>
 import PublicLayout from '../../../Layouts/PublicLayout.vue';
+import AdminQuickLinks from '../../../Components/AdminQuickLinks.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { Plus, Pencil, Trash2, FolderKanban } from 'lucide-vue-next';
 
@@ -26,7 +27,8 @@ const destroy = (id) => {
             <a href="/admin/projects/create" class="inline-flex items-center gap-2 rounded-lg bg-[#D4A72C] px-5 py-3 text-sm font-bold text-[#00351F]"><Plus :size="17" /> NEW PROJECT</a>
         </div>
     </div>
-</section>
+<AdminQuickLinks />
+    </section>
 
 <section class="bg-[#F7F9F7] py-10">
 <div class="mx-auto max-w-[1400px] px-5 lg:px-8">

@@ -1,6 +1,7 @@
 <script setup>
 
 import PublicLayout from '../../../Layouts/PublicLayout.vue';
+import AdminQuickLinks from '../../../Components/AdminQuickLinks.vue';
 
 import {
     useForm,
@@ -13,6 +14,7 @@ import {
     Trash2,
     CalendarDays,
     Clock3,
+    Users,
 } from 'lucide-vue-next';
 
 
@@ -144,7 +146,8 @@ const destroy = (id) => {
 
     </div>
 
-</section>
+<AdminQuickLinks />
+    </section>
 
 
 <!-- CONTENT -->
@@ -310,6 +313,21 @@ const destroy = (id) => {
                     <div
                         class="flex shrink-0 gap-2"
                     >
+
+                        <a
+                            :href="`/admin/events/${event.id}/attendance`"
+                            class="inline-flex items-center gap-2 rounded-lg border border-[#00351F] px-3 py-2 text-xs font-bold text-[#00351F] hover:bg-gray-50"
+                        >
+                            ATTENDANCE
+                        </a>
+
+                        <a
+                            :href="`/admin/events/${event.id}/registrations`"
+                            class="inline-flex items-center gap-2 rounded-lg border border-[#006B3C] px-3 py-2 text-xs font-bold text-[#006B3C] hover:bg-green-50"
+                        >
+                            <Users :size="14" />
+                            {{ event.registered_count ?? 0 }} REGISTERED
+                        </a>
 
                         <a
                             :href="`/admin/events/${event.id}/edit`"

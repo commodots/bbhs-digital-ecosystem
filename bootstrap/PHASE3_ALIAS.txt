@@ -1,0 +1,5 @@
+Add this entry inside the existing $middleware->alias([...]) array in bootstrap/app.php:
+
+'executive' => \App\Http\Middleware\ExecutiveAccessMiddleware::class,
+
+Keep the existing admin alias.

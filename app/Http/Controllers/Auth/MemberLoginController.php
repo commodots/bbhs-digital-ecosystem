@@ -30,8 +30,33 @@ class MemberLoginController extends Controller
         }
 
         $request->session()->regenerate();
+        $user = $request->user();
 
-        return redirect()->intended('/dashboard');
+        // Super Admins retain access to the full administration dashboard.
+        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return redirect('/admin/dashboard');
+        }
+
+        // Set and Branch executives use the scoped verification workspace.
+        // Do not send them to the global admin dashboard, which contains
+        // organisation-wide information intended for Super Admins.
+        $hasActiveExecutiveAssignment = $user->leadershipAssignments()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('starts_at')
+                    ->orWhereDate('starts_at', '<=', now()->toDateString());
+            })
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                    ->orWhereDate('ends_at', '>=', now()->toDateString());
+            })
+            ->exists();
+
+        if ($hasActiveExecutiveAssignment) {
+            return redirect('/admin/verifications');
+        }
+
+        return redirect('/dashboard');
     }
 
     public function destroy(Request $request)

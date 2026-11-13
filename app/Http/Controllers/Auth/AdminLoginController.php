@@ -27,16 +27,33 @@ class AdminLoginController extends Controller
         }
 
         $request->session()->regenerate();
+        $user = $request->user();
 
-        if (! (bool) $request->user()->is_admin) {
-            Auth::logout();
-
-            return back()->withErrors([
-                'email' => 'This account does not have administrator access.',
-            ])->onlyInput('email');
+        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return redirect('/admin/dashboard');
         }
 
-        return redirect()->intended('/admin/dashboard');
+        $hasActiveExecutiveAssignment = $user->leadershipAssignments()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('starts_at')
+                    ->orWhereDate('starts_at', '<=', now()->toDateString());
+            })
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                    ->orWhereDate('ends_at', '>=', now()->toDateString());
+            })
+            ->exists();
+
+        if ($hasActiveExecutiveAssignment) {
+            return redirect('/admin/verifications');
+        }
+
+        Auth::logout();
+
+        return back()->withErrors([
+            'email' => 'This account does not have administrator or active executive access.',
+        ])->onlyInput('email');
     }
 
     public function destroy(Request $request)

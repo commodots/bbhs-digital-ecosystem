@@ -10,16 +10,18 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
+        // Retain the existing development seed account behavior.
+        User::factory()->firstOrCreate([
             'email' => 'test@example.com',
+        ], [
+            'name' => 'Test User',
+        ]);
+
+        $this->call([
+            BbhsOrganisationSeeder::class,
+            BbhsNationalExecutivesSeeder::class,
         ]);
     }
 }

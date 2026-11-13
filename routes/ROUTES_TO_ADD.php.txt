@@ -1,0 +1,32 @@
+Add these imports near the top of routes/web.php:
+
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Admin\AdminNotificationController;
+
+Inside the existing Route::middleware(['auth'])->group(function () { ... }) add:
+
+    // Notification centre - available to all authenticated users.
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+Inside the existing Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () { ... }) add:
+
+    // Super Admin announcement composer. Controller enforces isAdmin() as well.
+    Route::get('/notifications/create', [AdminNotificationController::class, 'create'])->name('notifications.create');
+    Route::post('/notifications', [AdminNotificationController::class, 'store'])->name('notifications.store');
+
+Do not create a second auth group or a second admin group just for these routes.
+
+PHASE 3.1 REMINDER ROUTE CHECK
+------------------------------
+Because this patch also keeps the Phase 3.1 reminder controller action, confirm this route exists inside your existing auth + executive group. Add it only if it is not already present:
+
+    Route::post('/verifications/remind', [MembershipVerificationController::class, 'remind'])
+        ->name('verifications.remind');
+
+The existing import is:
+
+    use App\Http\Controllers\Admin\MembershipVerificationController;

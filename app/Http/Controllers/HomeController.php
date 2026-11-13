@@ -6,6 +6,8 @@ use App\Models\Event;
 use App\Models\News;
 use App\Models\Project;
 use App\Models\User;
+use App\Models\AlumniSpotlight;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -73,11 +75,28 @@ class HomeController extends Controller
                 ];
             })->values();
 
+        $spotlights = AlumniSpotlight::query()->with('alumniProfile.graduationSet')
+            ->where('is_active', true)
+            ->whereHas('alumniProfile', fn ($q) => $q->where('approved', true)->whereHas('user', fn ($u) => $u->where('member_status', 'approved')))
+            ->orderBy('sort_order')->orderBy('id')->take(3)->get()->map(function ($spotlight) use ($image) {
+                $profile = $spotlight->alumniProfile;
+                return [
+                    'id' => $spotlight->id,
+                    'name' => trim($profile->first_name . ' ' . $profile->last_name),
+                    'classSet' => $profile->graduationSet?->name ?? $profile->class_set ?? 'BBHS Old Boy',
+                    'image' => $image($profile->photo, '/images/bbhs/alumni/default-alumni.jpg'),
+                    'headline' => $spotlight->headline,
+                    'writeup' => $spotlight->writeup,
+                    'profileUrl' => '/alumni-directory/' . $profile->id,
+                ];
+            })->values();
+
         return Inertia::render('Home', [
             'home' => [
                 'news' => $news,
                 'events' => $events,
                 'projects' => $projects,
+                'spotlights' => $spotlights,
                 'stats' => [
                     'alumni' => User::where('is_admin', false)->where('member_status', 'approved')->count(),
                     'countries' => User::where('is_admin', false)->where('member_status', 'approved')

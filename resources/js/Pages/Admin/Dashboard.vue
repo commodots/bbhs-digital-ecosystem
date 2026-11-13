@@ -1,6 +1,7 @@
 <script setup>
 import PublicLayout from '../../Layouts/PublicLayout.vue';
-import { Users, Newspaper, CalendarDays, FolderKanban, ArrowRight, Clock3 } from 'lucide-vue-next';
+import AdminQuickLinks from '../../Components/AdminQuickLinks.vue';
+import { Users, Newspaper, CalendarDays, FolderKanban, ArrowRight, Clock3, ClipboardCheck, Archive } from 'lucide-vue-next';
 
 const props = defineProps({
     admin: Object,
@@ -12,7 +13,8 @@ const props = defineProps({
 
 const cards = [
     { title: 'Members', value: 'members', description: 'Registered Old Boys', icon: Users, href: '/admin/members' },
-    { title: 'Pending', value: 'pending_members', description: 'Membership approvals', icon: Users, href: '/admin/members' },
+    { title: 'Pending', value: 'pending_members', description: 'Membership approvals', icon: Users, href: '/admin/verifications' },
+    { title: 'Verifications', value: 'pending_members', description: 'Review set and branch registrations', icon: ClipboardCheck, href: '/admin/verifications' },
     { title: 'News', value: 'published_news', description: 'Published articles', icon: Newspaper, href: '/admin/news' },
     { title: 'Events', value: 'upcoming_events', description: 'Upcoming events', icon: CalendarDays, href: '/admin/events' },
     { title: 'Projects', value: 'published_projects', description: 'Published projects', icon: FolderKanban, href: '/admin/projects' },
@@ -26,16 +28,12 @@ const cards = [
 <p class="text-xs font-bold uppercase tracking-[0.25em] text-[#D4A72C]">Administration</p>
 <h1 class="mt-2 text-3xl font-extrabold text-white sm:text-4xl">Admin Dashboard</h1>
 <p class="mt-3 text-sm text-white/75">Welcome back, {{ admin?.name ?? 'Administrator' }}.</p>
-<div class="mt-5 flex flex-wrap gap-2">
-<a href="/dashboard" class="inline-flex items-center gap-2 rounded-lg bg-[#D4A72C] px-4 py-2.5 text-xs font-bold text-[#00351F]">Member Dashboard</a>
-<a href="/" class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/10">View Public Site</a>
 </div>
-</div>
-</section>
-
+<AdminQuickLinks />
+    </section>
 <section class="bg-[#F7F9F7] py-10 lg:py-14">
 <div class="mx-auto max-w-[1400px] px-5 lg:px-8">
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 <a v-for="card in cards" :key="card.title" :href="card.href" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
 <div class="flex items-center justify-between"><div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EEF8F2] text-[#006B3C]"><component :is="card.icon" :size="20" /></div><ArrowRight :size="17" class="text-gray-300" /></div>
 <div class="mt-5 text-3xl font-extrabold text-[#00351F]">{{ stats[card.value] ?? 0 }}</div>

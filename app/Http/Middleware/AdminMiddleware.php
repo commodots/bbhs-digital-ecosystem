@@ -8,11 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
 {
-    public function handle(
-        Request $request,
-        Closure $next
-    ): Response {
-        if (!$request->user() || !$request->user()->is_admin) {
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (! $request->user() || ! $request->user()->isAdmin()) {
             abort(403, 'Administrator access required.');
         }
 

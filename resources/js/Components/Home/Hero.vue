@@ -51,6 +51,8 @@ const slides = [
 ];
 
 const currentSlide = ref(0);
+const showStoryPlayer = ref(false);
+const storyVideoUrl = 'https://www.youtube-nocookie.com/embed/eT78i-rZTw8?autoplay=1&rel=0';
 let timer = null;
 
 const nextSlide = () => {
@@ -216,13 +218,11 @@ onUnmounted(() => {
 
                     <button
                         type="button"
+                        @click="showStoryPlayer = true; stopTimer()"
                         class="inline-flex items-center gap-3 rounded-lg border border-white/80 px-6 py-4 font-semibold text-white transition-all hover:bg-white hover:text-[#00351F]"
                     >
-
                         <PlayCircle :size="21" />
-
                         WATCH OUR STORY
-
                     </button>
 
                 </div>
@@ -294,6 +294,16 @@ onUnmounted(() => {
                 "
             ></button>
 
+        </div>
+
+        <!-- YouTube story player -->
+        <div v-if="showStoryPlayer" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" aria-label="Watch the BBHS story" @click.self="showStoryPlayer = false; startTimer()">
+            <div class="relative w-full max-w-5xl overflow-hidden rounded-xl bg-black shadow-2xl">
+                <button type="button" @click="showStoryPlayer = false; startTimer()" class="absolute right-3 top-3 z-10 rounded-full bg-black/70 px-3 py-2 text-sm font-bold text-white hover:bg-black" aria-label="Close video">✕ Close</button>
+                <div class="aspect-video w-full">
+                    <iframe :src="storyVideoUrl" title="BBHS - Watch Our Story" class="h-full w-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+            </div>
         </div>
 
     </section>

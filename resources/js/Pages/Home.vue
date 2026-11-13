@@ -21,7 +21,7 @@ const props = defineProps({
         <QuickAccess />
         <ImpactStats :stats="home.stats" />
         <LatestContent :news="home.news" :events="home.events" :projects="home.projects" />
-        <MembershipAlumni />
+        <MembershipAlumni :spotlights="home.spotlights || []" />
         <StayConnected />
     </PublicLayout>
 </template>
