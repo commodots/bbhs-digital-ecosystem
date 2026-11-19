@@ -3,9 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
+    public function fundraisingCampaigns(): HasMany
+    {
+        return $this->hasMany(FundraisingCampaign::class);
+    }
+
     protected $fillable = [
         'title','slug','category','excerpt','description','image',
         'target_amount','raised_amount','status','starts_on','ends_on','published'

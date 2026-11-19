@@ -32,6 +32,9 @@ class AdminLoginController extends Controller
         if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
             return redirect('/admin/dashboard');
         }
+        if ($user->welfare_team) {
+            return redirect('/admin/welfare');
+        }
 
         $hasActiveExecutiveAssignment = $user->leadershipAssignments()
             ->where('is_active', true)

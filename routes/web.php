@@ -52,7 +52,10 @@ use App\Http\Controllers\ChaptersController;
 */
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminFinancialReportController;
+use App\Http\Controllers\Admin\AdminWelfareReportController;
+use App\Http\Controllers\Admin\AdminMembershipReportController;
 use App\Http\Controllers\Admin\AdminMemberController;
+use App\Http\Controllers\Admin\MemberImportController;
 use App\Http\Controllers\Admin\AdminNewsController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\AdminProjectController;
@@ -66,6 +69,9 @@ use App\Http\Controllers\Admin\AdminFundraisingController;
 use App\Http\Controllers\Admin\AdminContactDirectoryController;
 use App\Http\Controllers\Admin\AdminGalleryController;
 use App\Http\Controllers\Admin\AdminNewsletterController;
+use App\Http\Controllers\Admin\WelfareTeamController;
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\WelfareTeamMiddleware;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,18 +94,23 @@ Route::redirect('/Mentorship', '/mentorship', 301);
 Route::redirect('/Careers', '/careers', 301);
 Route::redirect('/Chapters', '/chapters', 301);
 Route::get('/alumni', [AlumniLandingController::class, 'index'])->name('alumni');
+Route::get('/alumni/sets/{graduationSet}', [\App\Http\Controllers\GraduationSetController::class, 'show'])->name('alumni.sets.show');
 Route::get('/executives', [\App\Http\Controllers\NationalExecutivesController::class, 'index'])->name('executives');
 Route::get('/events', [EventController::class, 'index'])->name('events');
 Route::get('/events/calendar', [EventCalendarController::class, 'index'])->name('events.calendar');
 Route::get('/events/calendar.ics', [EventCalendarController::class, 'ics'])->name('events.calendar.ics');
 Route::get('/news', [NewsController::class, 'index'])->name('news');
-Route::get('/projects', [ProjectController::class, 'index'])->name('projects');
+Route::redirect('/projects', '/fundraising', 301)->name('projects');
 Route::get('/fundraising', [FundraisingController::class, 'index'])->name('fundraising.index');
 Route::get('/fundraising/paystack/callback', [FundraisingController::class, 'callback'])->name('fundraising.callback');
 Route::get('/fundraising/{campaign:slug}', [FundraisingController::class, 'show'])->name('fundraising.show');
 Route::post('/fundraising/{campaign:slug}/donate', [FundraisingController::class, 'donate'])->name('fundraising.donate');
 Route::post('/fundraising/{campaign:slug}/pledge', [FundraisingController::class, 'pledge'])->name('fundraising.pledge');
-Route::get('/resources', fn () => Inertia::render('Resources'))->name('resources');
+Route::get('/resources', fn () => Inertia::render('Resources', ['documents' => [
+    ['title' => 'BBHS School Anthem', 'description' => 'Listen to the official Baptist Boys High School Anthem.', 'url' => 'https://music.apple.com/ng/song/baptist-boys-high-school-anthem/1837559157', 'type' => 'Audio'],
+    ['title' => 'BBHS OBA Constitution', 'description' => 'Official constitution of the Old Boys Association.', 'url' => '/resources/bbhs/bbhs-oba-constitution.pdf', 'type' => 'PDF'],
+    ['title' => '102nd Anniversary Brochure', 'description' => 'Commemorative brochure documenting the school and association history.', 'url' => '/resources/bbhs/bbhs-102nd-anniversary-brochure.pdf', 'type' => 'PDF'],
+]]))->name('resources');
 Route::get('/archives', [HistoricalArchiveController::class, 'index'])->name('archives.index');
 Route::get('/archives/{archive:slug}', [HistoricalArchiveController::class, 'show'])->name('archives.show');
 Route::get('/membership', fn () => Inertia::render('Membership'))->name('membership');
@@ -141,11 +152,9 @@ Route::post('/register', [MemberRegistrationController::class, 'store'])
 |--------------------------------------------------------------------------
 */
 Route::get('/alumni-directory', [AlumniDirectoryController::class, 'index'])
-    ->middleware('auth')
     ->name('alumni.directory');
 
 Route::get('/alumni-directory/{alumniProfile}', [AlumniDirectoryController::class, 'show'])
-    ->middleware('auth')
     ->whereNumber('alumniProfile')
     ->name('alumni.directory.show');
 
@@ -167,8 +176,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/news/{news:slug}', [NewsController::class, 'show'])
     ->name('news.detail');
 
-Route::get('/projects/{project:slug}', [ProjectController::class, 'show'])
-    ->name('projects.detail');
+Route::redirect('/projects/{project}', '/fundraising', 301)->where('project', '[A-Za-z0-9-]+')->name('projects.detail');
 
 /*
 |--------------------------------------------------------------------------
@@ -198,6 +206,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/dues/plan', [MembershipDuesController::class, 'choosePlan'])->name('dues.plan');
     Route::post('/dues/paystack/initialize', [MembershipDuesController::class, 'initialize'])->name('dues.paystack.initialize');
     Route::get('/dues/paystack/callback', [MembershipDuesController::class, 'callback'])->name('dues.callback');
+    Route::get('/dues/receipts/{payment}', [MembershipDuesController::class, 'receipt'])->name('dues.receipt');
 
     // Confidential member welfare applications
     Route::get('/welfare', [WelfareController::class, 'index'])->name('welfare.index');
@@ -209,8 +218,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [MemberProfileController::class, 'show'])
         ->name('profile');
 
-    Route::put('/profile', [MemberProfileController::class, 'update'])
-        ->name('profile.update');
+    Route::put('/profile', [MemberProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile', [MemberProfileController::class, 'update'])->name('profile.update.post');
+
+    // Private member-to-member messaging
+    Route::get('/messages', [\App\Http\Controllers\MemberChatController::class, 'index'])->name('messages.index');
+    Route::post('/messages/start', [\App\Http\Controllers\MemberChatController::class, 'start'])->middleware('throttle:20,1')->name('messages.start');
+    Route::post('/messages/requests/{connectionRequest}/accept', [\App\Http\Controllers\MemberChatController::class, 'acceptRequest'])->whereNumber('connectionRequest')->name('messages.requests.accept');
+    Route::post('/messages/requests/{connectionRequest}/decline', [\App\Http\Controllers\MemberChatController::class, 'declineRequest'])->whereNumber('connectionRequest')->name('messages.requests.decline');
+    Route::post('/messages/members/{member}/block', [\App\Http\Controllers\MemberChatController::class, 'blockMember'])->whereNumber('member')->name('messages.members.block');
+    Route::delete('/messages/members/{member}/block', [\App\Http\Controllers\MemberChatController::class, 'unblockMember'])->whereNumber('member')->name('messages.members.unblock');
+    Route::get('/messages/{conversation}', [\App\Http\Controllers\MemberChatController::class, 'show'])->whereNumber('conversation')->name('messages.show');
+    Route::post('/messages/{conversation}/send', [\App\Http\Controllers\MemberChatController::class, 'send'])->whereNumber('conversation')->middleware('throttle:30,1')->name('messages.send');
 
     // Notification centre
     Route::get('/notifications', [NotificationController::class, 'index'])
@@ -312,6 +331,7 @@ Route::middleware(['auth', 'admin'])
             ->name('members.index');
 
         Route::get('/members/{user}', [AdminMemberController::class, 'show'])
+            ->whereNumber('user')
             ->name('members.show');
 
         Route::patch('/members/{user}/email', [AdminMemberController::class, 'updateEmail'])
@@ -346,9 +366,10 @@ Route::middleware(['auth', 'admin'])
         Route::resource('events', AdminEventController::class)
             ->except(['show']);
 
-        // Projects
-        Route::resource('projects', AdminProjectController::class)
-            ->except(['show']);
+        // Legacy project administration URLs now redirect to the unified fundraising module.
+        Route::redirect('/projects', '/admin/fundraising', 301)->name('projects.index');
+        Route::redirect('/projects/create', '/admin/fundraising/create', 301)->name('projects.create');
+        Route::redirect('/projects/{project}/edit', '/admin/fundraising', 301)->where('project', '[0-9]+')->name('projects.edit');
 
         // Gallery management
         Route::get('/gallery', [AdminGalleryController::class, 'index'])->name('gallery.index');
@@ -360,6 +381,7 @@ Route::middleware(['auth', 'admin'])
 
         // Membership dues administration (Super Admin only)
         Route::get('/dues', [AdminMembershipDuesController::class, 'index'])->name('dues.index');
+        Route::get('/dues/payments', [AdminMembershipDuesController::class, 'payments'])->name('dues.payments');
         Route::get('/dues/{user}', [AdminMembershipDuesController::class, 'show'])->name('dues.show');
         Route::put('/dues/{user}', [AdminMembershipDuesController::class, 'update'])->name('dues.update');
         Route::post('/dues/{user}/remind', [AdminMembershipDuesController::class, 'remind'])->name('dues.remind');
@@ -376,13 +398,6 @@ Route::middleware(['auth', 'admin'])
         Route::put('/fundraising/{campaign}', [AdminFundraisingController::class, 'update'])->name('fundraising.update');
         Route::delete('/fundraising/{campaign}', [AdminFundraisingController::class, 'destroy'])->name('fundraising.destroy');
 
-        // Welfare applications (confidential; global admin access)
-        Route::get('/welfare', [AdminWelfareController::class, 'index'])->name('welfare.index');
-        Route::get('/welfare/{application}', [AdminWelfareController::class, 'show'])->name('welfare.show');
-        Route::patch('/welfare/{application}', [AdminWelfareController::class, 'update'])->name('welfare.update');
-        Route::post('/welfare/{application}/disbursements', [AdminWelfareController::class, 'disburse'])->name('welfare.disbursements.store');
-        Route::get('/welfare/{application}/attachments/{attachment}', [AdminWelfareController::class, 'downloadAttachment'])->name('welfare.attachments.download');
-
         // Super Admin notification announcement composer
         Route::get('/notifications/create', [AdminNotificationController::class, 'create'])
             ->name('notifications.create');
@@ -390,6 +405,37 @@ Route::middleware(['auth', 'admin'])
         Route::post('/notifications', [AdminNotificationController::class, 'store'])
             ->name('notifications.store');
     });
+
+
+// Bulk member CSV import. The controller enforces National, Set and Branch Admin scope.
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/members/import', [MemberImportController::class, 'index'])->name('members.import');
+    Route::get('/members/import/template', [MemberImportController::class, 'template'])->name('members.import.template');
+    Route::post('/members/import/preview', [MemberImportController::class, 'preview'])->name('members.import.preview');
+    Route::post('/members/import/confirm', [MemberImportController::class, 'confirm'])->name('members.import.confirm');
+});
+
+// Welfare reports: Super Admin, Welfare Team and Global Executives (read-only reporting).
+Route::middleware(['auth', \App\Http\Middleware\GlobalExecutiveWelfareReportsMiddleware::class])
+    ->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/welfare-reports', [AdminWelfareReportController::class, 'index'])->name('welfare-reports.index');
+        Route::get('/welfare-reports/export', [AdminWelfareReportController::class, 'export'])->name('welfare-reports.export');
+    });
+
+// Welfare Team: access to confidential welfare records and case management.
+Route::middleware(['auth', WelfareTeamMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/welfare', [AdminWelfareController::class, 'index'])->name('welfare.index');
+    Route::get('/welfare/{application}', [AdminWelfareController::class, 'show'])->name('welfare.show');
+    Route::patch('/welfare/{application}', [AdminWelfareController::class, 'update'])->name('welfare.update');
+    Route::post('/welfare/{application}/disbursements', [AdminWelfareController::class, 'disburse'])->name('welfare.disbursements.store');
+    Route::get('/welfare/{application}/attachments/{attachment}', [AdminWelfareController::class, 'downloadAttachment'])->name('welfare.attachments.download');
+});
+
+// Only Super Admins can appoint or remove Welfare Team members.
+Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/welfare-team', [WelfareTeamController::class, 'index'])->name('welfare-team.index');
+    Route::put('/welfare-team', [WelfareTeamController::class, 'update'])->name('welfare-team.update');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -404,6 +450,9 @@ Route::middleware(['auth', 'executive'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+
+        Route::get('/membership-reports', [AdminMembershipReportController::class, 'index'])->name('membership-reports.index');
+        Route::get('/membership-reports/export', [AdminMembershipReportController::class, 'export'])->name('membership-reports.export');
 
         Route::get('/contacts', [AdminContactDirectoryController::class, 'index'])
             ->name('contacts.index');

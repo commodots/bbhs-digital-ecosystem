@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\News;
-use App\Models\Project;
+use App\Models\FundraisingCampaign;
 use App\Models\User;
 use App\Models\AlumniSpotlight;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -52,26 +52,20 @@ class HomeController extends Controller
                 'location' => $event->location ?: $event->venue,
             ])->values();
 
-        $projects = Project::where('published', true)
-            ->whereIn('status', ['active', 'ongoing'])
-            ->latest()
-            ->take(3)
-            ->get()
-            ->map(function ($project) use ($image) {
-                $target = (float) $project->target_amount;
-                $raised = (float) $project->raised_amount;
-                $progress = $target > 0 ? min(100, round(($raised / $target) * 100)) : 0;
+        $campaigns = FundraisingCampaign::where('published', true)
+            ->where('status', 'active')
+            ->withCount(['donations as successful_donations_count' => fn ($q) => $q->where('status', 'success')])
+            ->latest()->take(3)->get()
+            ->map(function ($campaign) use ($image) {
+                $target = (int) $campaign->target_amount_kobo;
+                $raised = (int) $campaign->raised_amount_kobo;
                 return [
-                    'id' => $project->id,
-                    'title' => $project->title,
-                    'slug' => $project->slug,
-                    'category' => $project->category ?: 'PROJECT',
-                    'excerpt' => $project->excerpt,
-                    'image' => $image($project->image, '/images/bbhs/school/bbhs-school-gate.jpg'),
-                    'status' => $project->status,
-                    'progress' => $progress,
-                    'raised' => number_format($raised, 0),
-                    'target' => number_format($target, 0),
+                    'id' => $campaign->id, 'title' => $campaign->title, 'slug' => $campaign->slug,
+                    'category' => $campaign->category ?: 'BBHS INITIATIVE', 'excerpt' => $campaign->excerpt,
+                    'image' => $image($campaign->image, '/images/bbhs/school/bbhs-school-gate.jpg'),
+                    'progress' => $target > 0 ? min(100, round($raised / $target * 100)) : 0,
+                    'raised' => number_format($raised / 100, 0), 'target' => number_format($target / 100, 0),
+                    'donors' => (int) $campaign->successful_donations_count,
                 ];
             })->values();
 
@@ -95,7 +89,7 @@ class HomeController extends Controller
             'home' => [
                 'news' => $news,
                 'events' => $events,
-                'projects' => $projects,
+                'campaigns' => $campaigns,
                 'spotlights' => $spotlights,
                 'stats' => [
                     'alumni' => User::where('is_admin', false)->where('member_status', 'approved')->count(),
@@ -105,7 +99,7 @@ class HomeController extends Controller
                         ->get()->pluck('alumniProfile.country')->filter()->unique()->count(),
                     'events' => Event::where('published', true)->count(),
                     'news' => News::where('published', true)->count(),
-                    'raised' => number_format((float) Project::where('published', true)->sum('raised_amount'), 0),
+                    'raised' => number_format((float) DB::table('fundraising_donations')->where('status', 'success')->sum('amount_kobo') / 100, 0),
                 ],
             ],
         ]);

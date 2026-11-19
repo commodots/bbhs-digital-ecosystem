@@ -1,5 +1,5 @@
 <script setup>
-import PublicLayout from '../Layouts/PublicLayout.vue';
+import MemberPortalLayout from '../Layouts/MemberPortalLayout.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { Save, UserCircle, ShieldCheck } from 'lucide-vue-next';
 
@@ -25,12 +25,18 @@ const form = useForm({
     country: profile.country ?? '',
     bio: profile.bio ?? '',
     directory_visible: profile.directory_visible ?? false,
+    public_photo: profile.public_photo ?? true,
+    public_name: profile.public_name ?? true,
+    public_graduation_set: profile.public_graduation_set ?? true,
+    public_profession: profile.public_profession ?? true,
+    public_location: profile.public_location ?? true,
+    public_bio: profile.public_bio ?? true,
 });
-const submit = () => form.put('/profile');
+const submit = () => form.transform((data) => ({ ...data, _method: 'put' })).post('/profile', { forceFormData: true, preserveScroll: true });
 </script>
 
 <template>
-<PublicLayout>
+<MemberPortalLayout>
     <section class="bg-[#00351F]"><div class="mx-auto max-w-[1200px] px-5 py-12 lg:px-8"><p class="text-xs font-bold uppercase tracking-[0.22em] text-[#D4A72C]">Member Portal</p><h1 class="mt-2 text-3xl font-extrabold text-white sm:text-4xl">My Profile</h1><p class="mt-2 text-sm text-white/70">Manage your contact information and directory privacy.</p></div></section>
     <section class="bg-[#F7F9F7] py-12"><div class="mx-auto max-w-[1000px] px-5 lg:px-8">
         <form class="rounded-2xl border border-gray-200 bg-white p-7 sm:p-9" @submit.prevent="submit">
@@ -60,7 +66,18 @@ const submit = () => form.put('/profile');
                 <textarea v-model="form.bio" class="min-h-[120px] rounded-lg border-gray-200 px-4 py-3 text-sm sm:col-span-2" placeholder="Short biography"></textarea>
             </div></div>
             <div class="mt-8 rounded-xl border border-gray-100 bg-gray-50 p-5"><div class="flex items-start gap-3"><ShieldCheck :size="21" class="mt-0.5 text-[#006B3C]" /><div><h3 class="font-bold text-[#00351F]">Membership and privacy</h3><p class="mt-1 text-sm leading-6 text-gray-600">Your graduation set is {{ profile.graduation_set?.name ?? profile.class_set ?? 'recorded by the Association' }}. To protect membership verification, changes to your graduation set must be requested through the Association and cannot be made from this profile form.</p></div></div>
-                <label class="mt-5 flex cursor-pointer items-start gap-3"><input v-model="form.directory_visible" type="checkbox" class="mt-1 rounded border-gray-300 text-[#006B3C] focus:ring-[#006B3C]" /><span><span class="block text-sm font-semibold text-gray-800">Show my profile in the public alumni directory</span><span class="mt-1 block text-xs leading-5 text-gray-500">When enabled, approved members can be found by name, set and location. Your phone number and email address are not shown.</span></span></label>
+                <label class="mt-5 flex cursor-pointer items-start gap-3"><input v-model="form.directory_visible" type="checkbox" class="mt-1 rounded border-gray-300 text-[#006B3C] focus:ring-[#006B3C]" /><span><span class="block text-sm font-semibold text-gray-800">Show my profile in the public alumni directory</span><span class="mt-1 block text-xs leading-5 text-gray-500">When enabled, your approved profile can appear in the public directory. You can choose which profile fields are visible below. Phone and email are always masked.</span></span></label>
+                <div v-if="form.directory_visible" class="mt-5 grid gap-3 border-t border-gray-200 pt-5 sm:grid-cols-2">
+                    <label v-for="item in [
+                        { key: 'public_photo', label: 'Profile photograph' },
+                        { key: 'public_name', label: 'Full name' },
+                        { key: 'public_graduation_set', label: 'Graduation set' },
+                        { key: 'public_profession', label: 'Profession' },
+                        { key: 'public_location', label: 'City and country' },
+                        { key: 'public_bio', label: 'Biography' },
+                    ]" :key="item.key" class="flex items-center gap-2 text-sm text-gray-700"><input v-model="form[item.key]" type="checkbox" class="rounded border-gray-300 text-[#006B3C]" /> Show {{ item.label }} publicly</label>
+                    <p class="text-xs leading-5 text-gray-500 sm:col-span-2">Phone and email remain masked on public pages. Clicking either masked contact detail asks visitors to log in. Your actual contact information is never sent to the public directory.</p>
+                </div>
             </div>
             <div class="mt-6 rounded-xl border border-gray-100 bg-gray-50 p-5">
                 <h3 class="font-bold text-[#00351F]">Communication preferences</h3>
@@ -72,5 +89,5 @@ const submit = () => form.put('/profile');
             <p v-if="form.recentlySuccessful" class="mt-3 text-sm text-green-700">Profile updated successfully.</p>
         </form>
     </div></section>
-</PublicLayout>
+</MemberPortalLayout>
 </template>

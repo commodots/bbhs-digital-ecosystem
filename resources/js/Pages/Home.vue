@@ -10,7 +10,7 @@ import StayConnected from '../Components/Home/StayConnected.vue';
 const props = defineProps({
     home: {
         type: Object,
-        default: () => ({ news: [], events: [], projects: [], stats: {} }),
+        default: () => ({ news: [], events: [], campaigns: [], stats: {} }),
     },
 });
 </script>
@@ -20,7 +20,7 @@ const props = defineProps({
         <Hero />
         <QuickAccess />
         <ImpactStats :stats="home.stats" />
-        <LatestContent :news="home.news" :events="home.events" :projects="home.projects" />
+        <LatestContent :news="home.news" :events="home.events" :campaigns="home.campaigns" />
         <MembershipAlumni :spotlights="home.spotlights || []" />
         <StayConnected />
     </PublicLayout>

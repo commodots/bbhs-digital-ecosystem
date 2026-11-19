@@ -25,7 +25,7 @@ class MembershipVerificationController extends Controller
             ->with(['user.alumniProfile.graduationSet'])
             ->where('status', 'pending');
 
-        if (! $user->isAdmin()) {
+        if (! $user->isAdmin() && ! $user->hasActiveGlobalExecutiveAssignment()) {
             $assignments = $this->activeAssignments($user->id);
             $allowed = $assignments->map(fn ($a) => [$a->scope_type, (int) $a->scope_id])->all();
 
@@ -57,7 +57,7 @@ class MembershipVerificationController extends Controller
             return $item;
         });
 
-        $scopes = $user->isAdmin()
+        $scopes = ($user->isAdmin() || $user->hasActiveGlobalExecutiveAssignment())
             ? [
                 'sets' => GraduationSet::orderBy('graduation_year')->get(['id', 'name']),
                 'branches' => Branch::orderBy('name')->get(['id', 'name']),
@@ -377,7 +377,7 @@ class MembershipVerificationController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->hasActiveGlobalExecutiveAssignment()) {
             return;
         }
 

@@ -23,10 +23,10 @@ const items = [
         href: '/events',
     },
     {
-        title: 'Donate & Support',
-        description: 'Support school projects, scholarships and initiatives.',
+        title: 'Projects & Fundraising',
+        description: 'Explore BBHS projects and support active campaigns.',
         icon: HeartHandshake,
-        href: '/projects',
+        href: '/fundraising',
     },
     {
         title: 'Mentorship',

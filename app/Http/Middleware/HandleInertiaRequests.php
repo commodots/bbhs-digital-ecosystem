@@ -20,13 +20,25 @@ class HandleInertiaRequests extends Middleware
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'profile_photo_url' => $user->alumniProfile?->photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($user->alumniProfile->photo) : null,
+                    'member_status' => $user->member_status,
                     'is_admin' => (bool) $user->isAdmin(),
+                    'is_global_executive' => (bool) $user->hasActiveGlobalExecutiveAssignment(),
+                    'welfare_team' => (bool) ($user->welfare_team ?? false),
                     'is_executive' => $user->leadershipAssignments()
                         ->where('is_active', true)
                         ->where(fn ($q) => $q->whereNull('starts_at')->orWhereDate('starts_at', '<=', now()->toDateString()))
                         ->where(fn ($q) => $q->whereNull('ends_at')->orWhereDate('ends_at', '>=', now()->toDateString()))
                         ->exists(),
                 ] : null,
+            ],
+            'messages' => [
+                'unread_count' => $user ? \Illuminate\Support\Facades\DB::table('member_messages')
+                    ->join('member_conversations', 'member_conversations.id', '=', 'member_messages.conversation_id')
+                    ->whereNull('member_messages.read_at')
+                    ->where('member_messages.sender_id', '<>', $user->id)
+                    ->where(fn ($q) => $q->where('member_conversations.user_one_id', $user->id)->orWhere('member_conversations.user_two_id', $user->id))
+                    ->count() : 0,
             ],
             'notifications' => [
                 'unread_count' => $user ? $user->unreadNotifications()->count() : 0,

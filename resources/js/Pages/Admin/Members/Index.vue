@@ -64,6 +64,11 @@ const statusClass = (status) => ({
             </div>
 
             <div class="flex flex-wrap gap-2">
+                <a href="/admin/members/import" class="inline-flex items-center gap-2 rounded-lg bg-[#D4A72C] px-4 py-2.5 text-xs font-bold text-[#00351F] hover:bg-[#e4bd4b]">
+                    <Users :size="15" />
+                    IMPORT CSV
+                </a>
+
                 <a
                     href="/admin/dashboard"
                     class="inline-flex items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/10"

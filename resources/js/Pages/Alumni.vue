@@ -54,10 +54,10 @@ defineProps({
                     <a href="/alumni-directory" class="inline-flex items-center gap-2 text-sm font-bold text-[#087A3A] hover:text-[#00351F]">Browse member directory <ArrowRight :size="16" /></a>
                 </div>
                 <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <div v-for="set in graduationSets" :key="set.id" class="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-4">
+                    <a v-for="set in graduationSets" :key="set.id" :href="`/alumni/sets/${set.id}`" class="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-4 transition hover:border-[#087A3A] hover:shadow-sm">
                         <div><p class="font-extrabold text-[#00351F]">{{ set.name }}</p><p class="mt-1 text-xs text-gray-500">Class of {{ set.graduation_year }}</p></div>
                         <span class="rounded-full bg-[#EEF8F2] px-3 py-1 text-xs font-bold text-[#087A3A]">{{ set.approved_members_count }} members</span>
-                    </div>
+                    </a>
                 </div>
                 <div v-if="!graduationSets.length" class="mt-8 rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-gray-500">Graduation sets will appear here as the Association’s set records are configured.</div>
             </div>

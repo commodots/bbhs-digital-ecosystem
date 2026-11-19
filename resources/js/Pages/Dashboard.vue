@@ -1,15 +1,18 @@
 <script setup>
-import PublicLayout from '../Layouts/PublicLayout.vue';
+import MemberPortalLayout from '../Layouts/MemberPortalLayout.vue';
+import { usePage } from '@inertiajs/vue3';
 import {
     CalendarDays,
     UserCircle,
     Newspaper,
     HeartHandshake,
+    MessageCircle,
     ArrowRight,
     ClipboardCheck,
     ShieldCheck, Wallet,
 } from 'lucide-vue-next';
 
+const page = usePage();
 const props = defineProps({
     member: { type: Object, default: () => ({}) },
     alumniProfile: { type: Object, default: null },
@@ -20,11 +23,13 @@ const props = defineProps({
 
 const cards = [
     { icon: UserCircle, title: 'My Profile', text: 'Update your alumni information and contact details.', href: '/profile' },
+    { icon: MessageCircle, title: 'Member Messages', text: 'Open your private conversations with other approved alumni.', href: '/messages' },
     { icon: CalendarDays, title: 'My Events', text: 'View events, reunions and activities you are attending.', href: '/events' },
     { icon: Newspaper, title: 'Latest News', text: 'Catch up with the latest BBHS and alumni stories.', href: '/news' },
-    { icon: HeartHandshake, title: 'Welfare Support', text: 'Submit and privately track a welfare assistance request.', href: '/welfare' },
     { icon: HeartHandshake, title: 'Fundraising & Donations', text: 'Support BBHS campaigns and review your donations, pledges and receipts.', href: '/my-fundraising' },
-    { icon: Wallet, title: 'Membership Dues', text: 'View your dues status, make payments and review your payment history.', href: '/dues' },
+    { icon: Wallet, title: 'Pay', text: 'View your dues status, make payments and review your payment history.', href: '/dues' },
+    { icon: HeartHandshake, title: 'Welfare Support', text: 'Submit and privately track a welfare assistance request.', href: '/welfare' },
+    ...(page.props.auth?.user?.welfare_team ? [{ icon: HeartHandshake, title: 'Welfare Team Workspace', text: 'Review and manage confidential welfare applications.', href: '/admin/welfare' }] : []),
     { icon: HeartHandshake, title: 'Support a Project', text: 'Discover projects and initiatives you can support.', href: '/projects' },
 ];
 
@@ -39,7 +44,7 @@ const executiveScopeText = () => {
 </script>
 
 <template>
-<PublicLayout>
+<MemberPortalLayout>
 <section class="bg-[#00351F]">
     <div class="mx-auto max-w-[1200px] px-5 py-12 lg:px-8">
         <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#D4A72C]">Member Portal</p>
@@ -107,7 +112,7 @@ const executiveScopeText = () => {
             </div>
         </div>
 
-        <div v-if="duesSummary" class="mb-8 rounded-2xl border border-[#D4A72C]/40 bg-white p-6 shadow-sm"><div class="flex flex-wrap items-center justify-between gap-4"><div><p class="text-xs font-bold uppercase tracking-widest text-[#006B3C]">Membership dues</p><h2 class="mt-1 text-xl font-extrabold text-[#00351F]">{{ duesSummary.status_label }}</h2><p class="mt-1 text-sm text-gray-500">Next due: {{ duesSummary.next_due_at || "To be confirmed" }}</p></div><a href="/dues" class="rounded-lg bg-[#006B3C] px-5 py-3 text-sm font-bold text-white">View / Pay Dues</a></div></div>
+        <div v-if="duesSummary" class="mb-8 rounded-2xl border border-[#D4A72C]/40 bg-white p-6 shadow-sm"><div class="flex flex-wrap items-center justify-between gap-4"><div><p class="text-xs font-bold uppercase tracking-widest text-[#006B3C]">Pay</p><h2 class="mt-1 text-xl font-extrabold text-[#00351F]">{{ duesSummary.status_label }}</h2><p class="mt-1 text-sm text-gray-500">Next due: {{ duesSummary.next_due_at || "To be confirmed" }}</p></div><a href="/dues" class="rounded-lg bg-[#006B3C] px-5 py-3 text-sm font-bold text-white">Pay</a></div></div>
         <div class="mt-8 rounded-2xl bg-white p-7 shadow-sm">
             <p class="text-xs font-bold uppercase tracking-[0.2em] text-[#006B3C]">Your Membership</p>
             <h2 class="mt-2 text-2xl font-extrabold text-[#00351F]">Member information</h2>
@@ -119,5 +124,5 @@ const executiveScopeText = () => {
         </div>
     </div>
 </section>
-</PublicLayout>
+</MemberPortalLayout>
 </template>

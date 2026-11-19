@@ -36,6 +36,12 @@ class MemberProfileController extends Controller
             'country' => ['nullable', 'string', 'max:150'],
             'bio' => ['nullable', 'string', 'max:3000'],
             'directory_visible' => ['sometimes', 'boolean'],
+            'public_photo' => ['sometimes', 'boolean'],
+            'public_name' => ['sometimes', 'boolean'],
+            'public_graduation_set' => ['sometimes', 'boolean'],
+            'public_profession' => ['sometimes', 'boolean'],
+            'public_location' => ['sometimes', 'boolean'],
+            'public_bio' => ['sometimes', 'boolean'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'remove_profile_photo' => ['sometimes', 'boolean'],
         ]);
@@ -60,8 +66,10 @@ class MemberProfileController extends Controller
             'bio' => $validated['bio'] ?? null,
         ];
 
-        if (array_key_exists('directory_visible', $validated)) {
-            $profileData['directory_visible'] = (bool) $validated['directory_visible'];
+        foreach (['directory_visible', 'public_photo', 'public_name', 'public_graduation_set', 'public_profession', 'public_location', 'public_bio'] as $privacyField) {
+            if (array_key_exists($privacyField, $validated)) {
+                $profileData[$privacyField] = (bool) $validated[$privacyField];
+            }
         }
 
         // Graduation set is intentionally immutable here; changes require an association verification workflow.

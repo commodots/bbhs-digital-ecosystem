@@ -9,7 +9,7 @@ const applyFilter = value => router.get('/notifications', { filter: value }, { p
 const markAllRead = () => router.post('/notifications/read-all', {}, { preserveScroll: true });
 const markRead = id => router.post(`/notifications/${id}/read`, {}, { preserveScroll: true });
 const remove = id => { if (confirm('Delete this notification?')) router.delete(`/notifications/${id}`, { preserveScroll: true }); };
-const categoryLabel = category => ({ membership: 'Membership', event: 'Events', announcement: 'Announcement', general: 'General' }[category] || 'General');
+const categoryLabel = category => ({ membership: 'Membership', event: 'Events', announcement: 'Announcement', message: 'Member Chat', general: 'General' }[category] || 'General');
 const dateLabel = value => value ? new Date(value).toLocaleString() : '';
 </script>
 <template>

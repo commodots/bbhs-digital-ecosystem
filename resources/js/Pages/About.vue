@@ -260,10 +260,7 @@ const impact = [
                         <p
                             class="mt-4 text-sm leading-7 text-white/75"
                         >
-                            To build a connected and purposeful community of
-                            BBHS Old Boys that preserves our shared heritage,
-                            supports the school and empowers present and future
-                            generations.
+                            To serve and glorify God through the provision of qualitative education, producing Christ-centred, highly intellectual servant-leaders who can take the light and hope of Jesus Christ to Nigeria, Africa and the world.
                         </p>
 
                     </div>
@@ -293,9 +290,7 @@ const impact = [
                         <p
                             class="mt-4 text-sm leading-7 text-gray-600"
                         >
-                            A united, active and globally connected BBHS
-                            brotherhood making a meaningful and sustainable
-                            contribution to education, community and society.
+                            A mission-minded, Christ-exalting and self-independent organisation committed to qualitative education with high moral and spiritual standards.
                         </p>
 
                     </div>

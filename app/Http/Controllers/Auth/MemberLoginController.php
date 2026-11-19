@@ -36,7 +36,6 @@ class MemberLoginController extends Controller
         if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
             return redirect('/admin/dashboard');
         }
-
         // Set and Branch executives use the scoped verification workspace.
         // Do not send them to the global admin dashboard, which contains
         // organisation-wide information intended for Super Admins.

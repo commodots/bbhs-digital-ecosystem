@@ -15,7 +15,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'member_status', 'is_admin',
+        'name', 'email', 'password', 'role', 'member_status', 'is_admin', 'welfare_team',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -26,6 +26,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'welfare_team' => 'boolean',
         ];
     }
 
@@ -52,6 +53,22 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return ($this->role ?? null) === 'admin' || (bool) $this->is_admin;
+    }
+
+    public function hasActiveGlobalExecutiveAssignment(): bool
+    {
+        return $this->leadershipAssignments()
+            ->where('scope_type', 'global')
+            ->whereNull('scope_id')
+            ->where('is_active', true)
+            ->where(fn ($query) => $query->whereNull('starts_at')->orWhereDate('starts_at', '<=', today()))
+            ->where(fn ($query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', today()))
+            ->exists();
+    }
+
+    public function isGlobalExecutive(): bool
+    {
+        return ! $this->isAdmin() && $this->hasActiveGlobalExecutiveAssignment();
     }
 
     public function isMember(): bool

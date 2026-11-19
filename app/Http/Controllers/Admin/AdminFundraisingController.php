@@ -5,6 +5,7 @@ use App\Models\Branch;
 use App\Models\GraduationSet;
 use App\Models\FundraisingCampaign;
 use App\Models\FundraisingDonation;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -13,8 +14,8 @@ use Inertia\Inertia;
 class AdminFundraisingController extends Controller
 {
     public function index() {
-        $campaigns=FundraisingCampaign::withCount(['donations as successful_donations_count'=>fn($q)=>$q->where('status','success')])->latest()->paginate(20)->through(fn($c)=>[
-            'id'=>$c->id,'title'=>$c->title,'slug'=>$c->slug,'scope_type'=>$c->scope_type,'status'=>$c->status,'published'=>$c->published,
+        $campaigns=FundraisingCampaign::with('project:id,title')->withCount(['donations as successful_donations_count'=>fn($q)=>$q->where('status','success')])->latest()->paginate(20)->through(fn($c)=>[
+            'id'=>$c->id,'title'=>$c->title,'slug'=>$c->slug,'project'=>$c->project?->title,'scope_type'=>$c->scope_type,'status'=>$c->status,'published'=>$c->published,
             'target_amount'=>$c->target_amount_kobo/100,'raised_amount'=>$c->raised_amount_kobo/100,'donations_count'=>$c->successful_donations_count,
         ]);
         return Inertia::render('Admin/Fundraising/Index',['campaigns'=>$campaigns,'stats'=>[
@@ -23,7 +24,7 @@ class AdminFundraisingController extends Controller
             'pending'=>FundraisingDonation::where('status','pending')->count(),
         ]]);
     }
-    public function create() { return Inertia::render('Admin/Fundraising/Form',['campaign'=>null,'sets'=>GraduationSet::orderBy('graduation_year')->get(['id','name','graduation_year']),'branches'=>Branch::orderBy('name')->get(['id','name'])]); }
+    public function create() { return Inertia::render('Admin/Fundraising/Form',['campaign'=>null,'sets'=>GraduationSet::orderBy('graduation_year')->get(['id','name','graduation_year']),'branches'=>Branch::orderBy('name')->get(['id','name']),'projects'=>Project::orderBy('title')->get(['id','title'])]); }
     public function store(Request $request) {
         $data=$this->validateCampaign($request); $data['slug']=$this->slug($data['title']); $data['created_by']=$request->user()->id;
         $data['published']=(bool)($data['published']??false); $data['status']=$data['published']?'active':'draft';
@@ -32,7 +33,7 @@ class AdminFundraisingController extends Controller
         FundraisingCampaign::create($data);
         return redirect()->route('admin.fundraising.index')->with('success','Fundraising campaign created.');
     }
-    public function edit(FundraisingCampaign $campaign) { return Inertia::render('Admin/Fundraising/Form',['campaign'=>$campaign,'sets'=>GraduationSet::orderBy('graduation_year')->get(['id','name','graduation_year']),'branches'=>Branch::orderBy('name')->get(['id','name'])]); }
+    public function edit(FundraisingCampaign $campaign) { return Inertia::render('Admin/Fundraising/Form',['campaign'=>$campaign,'sets'=>GraduationSet::orderBy('graduation_year')->get(['id','name','graduation_year']),'branches'=>Branch::orderBy('name')->get(['id','name']),'projects'=>Project::orderBy('title')->get(['id','title'])]); }
     public function update(Request $request, FundraisingCampaign $campaign) {
         $data=$this->validateCampaign($request); $data['slug']=$this->slug($data['title'],$campaign->id); $data['published']=(bool)($data['published']??false);
         $data['status']=$data['published']?'active':'draft';
@@ -69,7 +70,7 @@ class AdminFundraisingController extends Controller
     }
     private function validateCampaign(Request $request): array {
         $data = $request->validate([
-            'title'=>['required','string','max:255'],'category'=>['nullable','string','max:100'],
+            'title'=>['required','string','max:255'],'category'=>['nullable','string','max:100'],'project_id'=>['nullable','integer','exists:projects,id'],
             'scope_type'=>['required','in:national,set,branch'],'scope_id'=>['nullable','integer'],
             'excerpt'=>['nullable','string','max:1000'],'description'=>['nullable','string'],
             'image'=>['nullable','image','mimes:jpg,jpeg,png,webp','max:5120'],

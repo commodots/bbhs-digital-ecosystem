@@ -27,7 +27,11 @@ class AlumniLandingController extends Controller
             ],
             'graduationSets' => GraduationSet::query()->where('is_active', true)
                 ->withCount(['alumniProfiles as approved_members_count' => fn ($q) => $q->where('approved', true)])
-                ->orderByDesc('graduation_year')->get(['id', 'name', 'graduation_year']),
+                ->orderByDesc('graduation_year')->get(['id', 'name', 'graduation_year'])->map(function ($set) {
+                    $label = trim((string) $set->name);
+                    if (!preg_match('/\bSet$/i', $label)) $set->name = $label . ' Set';
+                    return $set;
+                }),
             'spotlights' => AlumniSpotlight::with('alumniProfile.graduationSet')->where('is_active', true)
                 ->whereHas('alumniProfile', fn ($q) => $q->where('approved', true)->whereHas('user', fn ($u) => $u->where('member_status', 'approved')))
                 ->orderBy('sort_order')->orderBy('id')->get()->map(fn ($s) => [

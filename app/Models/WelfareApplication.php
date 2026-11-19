@@ -24,4 +24,5 @@ class WelfareApplication extends Model
     public function reviewer(): BelongsTo { return $this->belongsTo(User::class, 'reviewed_by'); }
     public function attachments(): HasMany { return $this->hasMany(WelfareAttachment::class); }
     public function disbursements(): HasMany { return $this->hasMany(WelfareDisbursement::class); }
+    public function activityLogs(): HasMany { return $this->hasMany(WelfareActivityLog::class)->latest(); }
 }

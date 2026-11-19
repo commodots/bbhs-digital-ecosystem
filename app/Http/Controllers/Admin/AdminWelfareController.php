@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Notifications\BbhsPlatformNotification;
+
+use App\Models\WelfareActivityLog;
+
 use App\Http\Controllers\Controller;
 use App\Models\WelfareApplication;
 use App\Models\WelfareDisbursement;
@@ -29,13 +33,15 @@ class AdminWelfareController extends Controller
                 'pending' => WelfareApplication::whereIn('status', ['submitted', 'under_review', 'more_information'])->count(),
                 'approved' => WelfareApplication::where('status', 'approved')->count(),
                 'disbursed' => WelfareDisbursement::sum('amount'),
+                'approved_amount' => WelfareApplication::whereIn('status', ['approved', 'closed'])->sum('amount_approved'),
+                'outstanding' => max(0, (float) WelfareApplication::whereIn('status', ['approved', 'closed'])->sum('amount_approved') - (float) WelfareDisbursement::sum('amount')),
             ],
         ]);
     }
 
     public function show(WelfareApplication $application)
     {
-        $application->load(['user.alumniProfile', 'attachments', 'disbursements', 'reviewer:id,name']);
+        $application->load(['user.alumniProfile', 'attachments', 'disbursements', 'reviewer:id,name', 'activityLogs.actor:id,name']);
         return Inertia::render('Admin/Welfare/Show', ['application' => $application]);
     }
 
@@ -47,13 +53,26 @@ class AdminWelfareController extends Controller
             'admin_notes' => ['nullable', 'string', 'max:10000'],
         ]);
 
+        $before = $application->only(['status', 'amount_approved']);
         $application->update([
             ...$data,
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
         ]);
+        WelfareActivityLog::create([
+            'welfare_application_id' => $application->id,
+            'actor_id' => $request->user()->id,
+            'action' => 'application_reviewed',
+            'details' => ['before' => $before, 'after' => $application->only(['status', 'amount_approved'])],
+        ]);
+        $application->user?->notify(new BbhsPlatformNotification(
+            'Welfare application update',
+            'Your welfare application '.$application->reference.' has been updated. Current status: '.str_replace('_', ' ', $application->status).'.',
+            'welfare', '/welfare/'.$application->id,
+            ['application_id' => $application->id, 'reference' => $application->reference, 'status' => $application->status]
+        ));
 
-        return back()->with('success', 'Welfare application updated.');
+        return back()->with('success', 'Welfare application updated and the applicant has been notified.');
     }
 
     public function disburse(Request $request, WelfareApplication $application)
@@ -71,14 +90,26 @@ class AdminWelfareController extends Controller
         abort_if($application->amount_approved !== null && $total > (float) $application->amount_approved, 422, 'Disbursement exceeds the approved amount.');
 
         DB::transaction(function () use ($application, $data, $request) {
-            $application->disbursements()->create([...$data, 'recorded_by' => $request->user()->id]);
+            $disbursement = $application->disbursements()->create([...$data, 'recorded_by' => $request->user()->id]);
+            WelfareActivityLog::create([
+                'welfare_application_id' => $application->id,
+                'actor_id' => $request->user()->id,
+                'action' => 'disbursement_recorded',
+                'details' => ['disbursement_id' => $disbursement->id, 'amount' => $data['amount'], 'reference' => $data['reference'] ?? null],
+            ]);
             $paid = (float) $application->disbursements()->sum('amount');
             if ($application->amount_approved !== null && $paid >= (float) $application->amount_approved) {
                 $application->update(['status' => 'closed']);
             }
         });
+        $application->user?->notify(new BbhsPlatformNotification(
+            'Welfare assistance disbursement recorded',
+            'A disbursement of ₦'.number_format((float) $data['amount'], 2).' has been recorded for your welfare application '.$application->reference.'.',
+            'welfare', '/welfare/'.$application->id,
+            ['application_id' => $application->id, 'reference' => $application->reference, 'amount' => $data['amount']]
+        ));
 
-        return back()->with('success', 'Disbursement recorded.');
+        return back()->with('success', 'Disbursement recorded and the applicant has been notified.');
     }
 
     public function downloadAttachment(WelfareApplication $application, \App\Models\WelfareAttachment $attachment)

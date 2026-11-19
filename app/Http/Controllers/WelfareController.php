@@ -2,6 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\BbhsPlatformNotification;
+
+use App\Models\User;
+
+use App\Models\WelfareActivityLog;
+
 use App\Models\WelfareApplication;
 use App\Models\WelfareAttachment;
 use Illuminate\Http\Request;
@@ -34,7 +40,7 @@ class WelfareController extends Controller
             'description' => ['required', 'string', 'min:20', 'max:15000'],
             'amount_requested' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
             'attachments' => ['nullable', 'array', 'max:5'],
-            'attachments.*' => ['file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:5120'],
+            'attachments.*' => ['file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240'],
         ]);
 
         $application = WelfareApplication::create([
@@ -46,6 +52,30 @@ class WelfareController extends Controller
             'amount_requested' => $data['amount_requested'] ?? null,
             'status' => 'submitted',
         ]);
+
+        WelfareActivityLog::create([
+            'welfare_application_id' => $application->id,
+            'actor_id' => $request->user()->id,
+            'action' => 'application_submitted',
+            'details' => ['status' => 'submitted', 'category' => $application->category],
+        ]);
+
+        User::query()->where('welfare_team', true)->get()->each(function ($recipient) use ($application) {
+            $recipient->notify(new BbhsPlatformNotification(
+                'New confidential welfare application',
+                'A new welfare application ('.$application->reference.') is ready for review.',
+                'welfare', '/admin/welfare/'.$application->id,
+                ['application_id' => $application->id, 'reference' => $application->reference]
+            ));
+        });
+        User::query()->get()->filter(fn ($recipient) => $recipient->isAdmin())->each(function ($recipient) use ($application) {
+            $recipient->notify(new BbhsPlatformNotification(
+                'New confidential welfare application',
+                'A new welfare application ('.$application->reference.') has been submitted.',
+                'welfare', '/admin/welfare/'.$application->id,
+                ['application_id' => $application->id, 'reference' => $application->reference]
+            ));
+        });
 
         foreach ($request->file('attachments', []) as $file) {
             $path = $file->store('welfare/' . $application->id, 'local');

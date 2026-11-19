@@ -90,16 +90,13 @@ const logout = () => {
 
                     <div class="hidden min-w-0 sm:block">
                         <div class="truncate text-base font-extrabold leading-tight tracking-wide text-[#00351F] lg:text-lg">
-                            BAPTIST BOYS' HIGH SCHOOL
+                            BAPTIST BOYS' HIGH SCHOOL, ABEOKUTA
                         </div>
 
                         <div class="mt-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#087A3A] lg:text-xs">
                             OLD BOYS' ASSOCIATION
                         </div>
 
-                        <div class="mt-0.5 text-[9px] font-medium uppercase tracking-[0.16em] text-gray-500 lg:text-[10px]">
-                            Abeokuta
-                        </div>
                     </div>
                 </a>
 

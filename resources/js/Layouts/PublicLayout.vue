@@ -1,6 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import MemberPortalLayout from './MemberPortalLayout.vue';
 import {
     Menu,
     X,
@@ -9,9 +10,12 @@ import {
     LogOut,
     ShieldCheck,
     Bell,
+    MessageCircle,
+    Send,
 } from 'lucide-vue-next';
 
 const page = usePage();
+const isAdminPage = computed(() => page.url.startsWith('/admin'));
 const mobileOpen = ref(false);
 const openDropdown = ref(null);
 const mobileExpanded = ref(null);
@@ -42,9 +46,9 @@ const navItems = [
         { label: 'Events', href: '/events' },
         { label: 'Gallery', href: '/gallery' },
     ] },
-    { key: 'giving', label: 'Giving', items: [
-        { label: 'Fundraising', href: '/fundraising' },
-        { label: 'Projects', href: '/projects' },
+    { key: 'giving', label: 'Support BBHS', items: [
+        { label: 'Projects & Fundraising', href: '/fundraising' },
+        
     ] },
     { key: 'heritage', label: 'Heritage', items: [
         { label: 'Historical Archives', href: '/archives' },
@@ -65,7 +69,7 @@ const calculateVisibleItems = async () => {
     if (!navArea.value || !measureRefs.value.length) return;
 
     const available = navArea.value.clientWidth;
-    const gap = 16; // matches gap-4 on the desktop navigation
+    const gap = 8; // matches the tighter gap-2 desktop navigation
     const widths = navItems.map((_, index) => measureRefs.value[index]?.getBoundingClientRect().width ?? 0);
     const moreWidth = moreButton.value?.getBoundingClientRect().width ?? 70;
 
@@ -98,6 +102,7 @@ const closeMenus = () => {
 
 const user = computed(() => page.props.auth?.user ?? null);
 const isLoggedIn = computed(() => !!user.value);
+const isMemberPortal = computed(() => isLoggedIn.value && !isAdminPage.value);
 const isAdmin = computed(() => !!user.value?.is_admin);
 const unreadCount = computed(() => page.props.notifications?.unread_count ?? 0);
 
@@ -129,10 +134,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-white">
+    <MemberPortalLayout v-if="isMemberPortal"><slot /></MemberPortalLayout>
+    <div v-else class="min-h-screen bg-white">
 
         <!-- TOP BAR -->
-        <div class="bg-[#00351F] text-white">
+        <div v-if="!isAdminPage" class="bg-[#00351F] text-white">
             <div class="mx-auto flex min-h-[38px] max-w-[1440px] items-center justify-between px-5 text-xs lg:px-8">
                 <div class="flex items-center gap-5">
                     <span>BBHS Old Boys Association</span>
@@ -172,7 +178,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- MAIN HEADER -->
-        <header class="border-b border-gray-200 bg-white">
+        <header v-if="!isAdminPage" class="border-b border-gray-200 bg-white">
             <div class="mx-auto flex min-h-[84px] max-w-[1440px] items-center justify-between px-5 lg:px-8">
 
                 <a href="/" class="flex items-center gap-3" @click="mobileOpen = false">
@@ -184,24 +190,21 @@ onBeforeUnmount(() => {
 
                     <div class="hidden sm:block">
                         <div class="text-base font-extrabold tracking-wide text-[#00351F] lg:text-lg">
-                            BAPTIST BOYS' HIGH SCHOOL
+                            BAPTIST BOYS' HIGH SCHOOL, ABEOKUTA
                         </div>
                         <div class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#087A3A] lg:text-xs">
                             OLD BOYS' ASSOCIATION
-                        </div>
-                        <div class="text-[9px] uppercase tracking-[0.16em] text-gray-500 lg:text-[10px]">
-                            ABEOKUTA
                         </div>
                     </div>
                 </a>
 
                 <!-- DESKTOP: show every group that fits; overflow alone moves into More -->
-                <div class="hidden min-w-0 flex-1 items-center gap-3 lg:flex">
-                    <nav ref="navArea" class="flex min-w-0 flex-1 items-center justify-end gap-4">
+                <div class="hidden min-w-0 flex-1 items-center gap-1.5 lg:flex">
+                    <nav ref="navArea" class="flex min-w-0 flex-1 items-center justify-end gap-2 py-1">
                         <template v-for="item in visibleNavItems" :key="item.key">
-                            <a v-if="item.href" :href="item.href" class="whitespace-nowrap text-[13px] font-semibold text-gray-700 transition hover:text-[#087A3A]">{{ item.label }}</a>
+                            <a v-if="item.href" :href="item.href" class="inline-flex h-10 items-center whitespace-nowrap text-[13px] font-semibold leading-none text-gray-700 transition hover:text-[#087A3A]">{{ item.label }}</a>
                             <div v-else class="relative">
-                                <button type="button" @click="openDropdown = openDropdown === item.key ? null : item.key" @keydown.escape="closeMenus" :aria-expanded="openDropdown === item.key" aria-haspopup="true" class="inline-flex items-center gap-1 whitespace-nowrap text-[13px] font-semibold text-gray-700 transition hover:text-[#087A3A]">
+                                <button type="button" @click="openDropdown = openDropdown === item.key ? null : item.key" @keydown.escape="closeMenus" :aria-expanded="openDropdown === item.key" aria-haspopup="true" class="inline-flex h-10 items-center gap-1 whitespace-nowrap text-[13px] font-semibold leading-none text-gray-700 transition hover:text-[#087A3A]">
                                     {{ item.label }} <span aria-hidden="true" class="text-[11px]">⌄</span>
                                 </button>
                                 <div v-if="openDropdown === item.key" class="absolute left-0 top-full z-50 mt-3 min-w-52 rounded-xl border border-gray-100 bg-white p-2 shadow-xl">
@@ -211,7 +214,7 @@ onBeforeUnmount(() => {
                         </template>
 
                         <div v-if="overflowNavItems.length" class="relative shrink-0">
-                            <button type="button" @click="openDropdown = openDropdown === 'more' ? null : 'more'" @keydown.escape="closeMenus" :aria-expanded="openDropdown === 'more'" aria-haspopup="true" class="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-2 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">More <span aria-hidden="true">⌄</span></button>
+                            <button type="button" @click="openDropdown = openDropdown === 'more' ? null : 'more'" @keydown.escape="closeMenus" :aria-expanded="openDropdown === 'more'" aria-haspopup="true" class="inline-flex h-10 items-center gap-1 whitespace-nowrap rounded-lg px-2 text-[13px] font-semibold leading-none text-gray-700 hover:bg-gray-50 hover:text-[#087A3A]">More <span aria-hidden="true">⌄</span></button>
                             <div v-if="openDropdown === 'more'" class="absolute right-0 top-full z-50 mt-3 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-gray-100 bg-white p-2 shadow-xl">
                                 <template v-for="item in overflowNavItems" :key="item.key">
                                     <a v-if="item.href" :href="item.href" @click="closeMenus" class="block rounded-lg px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-[#F2F8F4] hover:text-[#087A3A]">{{ item.label }}</a>
@@ -228,20 +231,35 @@ onBeforeUnmount(() => {
                         </div>
                     </nav>
 
-                    <a v-if="isLoggedIn" href="/notifications" class="relative inline-flex shrink-0 items-center rounded-lg border border-gray-200 p-2.5 text-[#006B3C] hover:bg-[#EEF8F2]" aria-label="Notifications">
+                    <a v-if="isLoggedIn && (user?.member_status === 'approved' || isAdmin)" href="/messages" title="Messages" class="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-[#006B3C] transition-colors hover:border-[#006B3C] hover:bg-[#EAF5EE] hover:text-[#004D2B]" aria-label="Messages">
+                        <MessageCircle :size="18" />
+                        <span v-if="page.props.messages?.unread_count > 0" class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-extrabold text-white">{{ page.props.messages.unread_count > 99 ? '99+' : page.props.messages.unread_count }}</span>
+                    </a>
+
+                    <a v-if="isLoggedIn" href="/notifications" title="Notifications" class="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-[#006B3C] transition-colors hover:border-[#006B3C] hover:bg-[#EAF5EE] hover:text-[#004D2B]" aria-label="Notifications">
                         <Bell :size="18" />
                         <span v-if="unreadCount > 0" class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-extrabold text-white">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
                     </a>
 
-                    <a v-if="!isLoggedIn" href="/membership" class="shrink-0 whitespace-nowrap rounded-lg bg-[#D4A72C] px-4 py-3 text-xs font-extrabold text-[#00351F] hover:bg-[#E5B93F]">JOIN</a>
+                    <a v-if="!isLoggedIn" href="/membership" class="inline-flex h-10 shrink-0 items-center whitespace-nowrap rounded-lg bg-[#D4A72C] px-4 text-xs font-extrabold leading-none text-[#00351F] hover:bg-[#E5B93F]">JOIN</a>
                     <template v-else-if="!isAdmin">
-                        <a href="/dashboard" class="shrink-0 whitespace-nowrap rounded-lg bg-[#006B3C] px-3 py-3 text-xs font-bold text-white">DASHBOARD</a>
-                        <button type="button" :disabled="logoutForm.processing" class="shrink-0 whitespace-nowrap rounded-lg border border-gray-200 px-3 py-3 text-xs font-bold text-gray-700 hover:border-[#006B3C] hover:text-[#006B3C] disabled:opacity-50" @click="logout">LOGOUT</button>
+                        <a href="/dashboard" title="Dashboard" aria-label="Dashboard" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-[#006B3C] transition-colors hover:border-[#006B3C] hover:bg-[#EAF5EE] hover:text-[#004D2B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B3C]">
+                            <LayoutDashboard :size="19" />
+                        </a>
+                        <button type="button" title="Logout" aria-label="Logout" :disabled="logoutForm.processing" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50" @click="logout">
+                            <LogOut :size="19" />
+                        </button>
                     </template>
                     <template v-else>
-                        <a href="/admin/dashboard" class="shrink-0 whitespace-nowrap rounded-lg bg-[#006B3C] px-3 py-3 text-xs font-bold text-white"><ShieldCheck :size="15" class="mr-1 inline"/>ADMIN</a>
-                        <a href="/admin/notifications/create" class="shrink-0 whitespace-nowrap rounded-lg border border-[#006B3C] px-3 py-3 text-xs font-bold text-[#006B3C]">UPDATE</a>
-                        <button type="button" :disabled="logoutForm.processing" class="shrink-0 whitespace-nowrap rounded-lg border border-gray-200 px-3 py-3 text-xs font-bold text-gray-700 hover:border-[#006B3C] hover:text-[#006B3C] disabled:opacity-50" @click="logout">LOGOUT</button>
+                        <a href="/admin/dashboard" title="Admin Dashboard" aria-label="Admin Dashboard" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#006B3C] bg-[#006B3C] text-white transition-colors hover:border-[#004D2B] hover:bg-[#004D2B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B3C]">
+                            <ShieldCheck :size="19" />
+                        </a>
+                        <a href="/admin/notifications/create" title="Update" aria-label="Update" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-[#006B3C] transition-colors hover:border-[#006B3C] hover:bg-[#EAF5EE] hover:text-[#004D2B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006B3C]">
+                            <Send :size="18" />
+                        </a>
+                        <button type="button" title="Logout" aria-label="Logout" :disabled="logoutForm.processing" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50" @click="logout">
+                            <LogOut :size="19" />
+                        </button>
                     </template>
                 </div>
 
@@ -276,6 +294,7 @@ onBeforeUnmount(() => {
                         </div>
                     </template>
 
+                    <a v-if="isLoggedIn && user?.member_status === 'approved'" href="/messages" @click="mobileOpen = false" class="flex items-center gap-2 rounded-lg px-4 py-3 font-semibold text-[#006B3C] hover:bg-gray-50"><MessageCircle :size="17" /> Member Messages</a>
                     <a v-if="isLoggedIn" href="/notifications" @click="mobileOpen = false" class="flex items-center justify-between rounded-lg px-4 py-3 font-semibold text-[#006B3C] hover:bg-gray-50"><span class="flex items-center gap-2"><Bell :size="17" /> Notifications</span><span v-if="unreadCount > 0" class="rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">{{ unreadCount }}</span></a>
 
                     <div class="mt-4 grid gap-2">
@@ -303,7 +322,7 @@ onBeforeUnmount(() => {
         </main>
 
         <!-- FOOTER -->
-        <footer class="bg-[#00351F] text-white">
+        <footer v-if="!isAdminPage" class="bg-[#00351F] text-white">
             <div class="mx-auto max-w-[1440px] px-6 py-14 lg:px-8">
                 <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
 
@@ -326,8 +345,8 @@ onBeforeUnmount(() => {
                             <a href="/careers" class="block hover:text-[#D4A72C]">Careers & Opportunities</a>
                             <a href="/chapters" class="block hover:text-[#D4A72C]">Chapters & Branches</a>
                             <a href="/events" class="block hover:text-[#D4A72C]">Events & Reunions</a>
-                            <a href="/projects" class="block hover:text-[#D4A72C]">Projects</a>
-                            <a href="/fundraising" class="block hover:text-[#D4A72C]">Fundraising</a>
+                            
+                            <a href="/fundraising" class="block hover:text-[#D4A72C]">Projects &amp; Fundraising</a>
                         </div>
                     </div>
 

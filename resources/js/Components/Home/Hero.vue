@@ -51,6 +51,9 @@ const slides = [
 ];
 
 const currentSlide = ref(0);
+const showSponsorCredit = ref(true);
+const sponsorDuration = 11000; // twice the previous 5.5-second display
+let sponsorTimer = null;
 const showStoryPlayer = ref(false);
 const storyVideoUrl = 'https://www.youtube-nocookie.com/embed/eT78i-rZTw8?autoplay=1&rel=0';
 let timer = null;
@@ -68,8 +71,12 @@ const goToSlide = (index) => {
     currentSlide.value = index;
 };
 
-const startTimer = () => {
-    timer = setInterval(nextSlide, 6000);
+const startTimer = (delay = 6000) => {
+    stopTimer();
+    timer = setTimeout(() => {
+        nextSlide();
+        timer = setInterval(nextSlide, 6000);
+    }, delay);
 };
 
 const stopTimer = () => {
@@ -80,11 +87,14 @@ const stopTimer = () => {
 };
 
 onMounted(() => {
-    startTimer();
+    // Keep slide one on screen while the one-time sponsor acknowledgement is displayed.
+    startTimer(sponsorDuration);
+    sponsorTimer = setTimeout(() => { showSponsorCredit.value = false; }, sponsorDuration);
 });
 
 onUnmounted(() => {
     stopTimer();
+    if (sponsorTimer) clearTimeout(sponsorTimer);
 });
 </script>
 
@@ -227,6 +237,13 @@ onUnmounted(() => {
 
                 </div>
 
+
+                <!-- One-time project sponsorship acknowledgement on first slide -->
+                <Transition name="hero-fade">
+                    <p v-if="currentSlide === 0 && showSponsorCredit" class="absolute right-6 top-1/2 z-20 w-[min(34rem,42vw)] -translate-y-1/2 rounded-xl border border-[#D4A72C]/60 bg-black/55 px-6 py-5 text-center text-sm font-semibold leading-7 tracking-wide text-white shadow-2xl backdrop-blur-sm sm:right-10 lg:right-[7%]">
+                        Project sponsored by John Dare Oloyede (1984) and Prince Olutoyin Ayoade (1987)
+                    </p>
+                </Transition>
 
                 <!-- Heritage -->
 

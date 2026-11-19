@@ -1,9 +1,11 @@
 <script setup>
 import PublicLayout from '../Layouts/PublicLayout.vue';
+import { Link } from '@inertiajs/vue3';
 import { ArrowRight, GraduationCap, HeartHandshake, Lightbulb, Building2 } from 'lucide-vue-next';
 
 const props = defineProps({
     projects: { type: Object, default: () => ({ data: [] }) },
+    standaloneCampaigns: { type: Array, default: () => [] },
 });
 
 const projects = props.projects?.data ?? [];
@@ -206,7 +208,7 @@ const images = { gate: '/images/bbhs/school/bbhs-school-gate.jpg' };
 
                     <article
                         v-for="project in projects"
-                        :key="project.title"
+                        :key="project.id"
                         class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                     >
 
@@ -253,7 +255,7 @@ const images = { gate: '/images/bbhs/school/bbhs-school-gate.jpg' };
                                     </span>
 
                                     <span class="text-[#006B3C]">
-                                        {{ project.raised }} raised
+                                        {{ new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(Number(project.raised_amount || 0)) }} raised
                                     </span>
 
                                 </div>
@@ -268,19 +270,19 @@ const images = { gate: '/images/bbhs/school/bbhs-school-gate.jpg' };
                                 </div>
 
                                 <div class="mt-2 text-right text-[10px] text-gray-400">
-                                    Goal: {{ project.target }}
+                                    Goal: {{ new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(Number(project.target_amount || 0)) }}
                                 </div>
 
                             </div>
 
 
-                            <a
-                                href="#"
+                            <Link
+                                :href="`/projects/${project.slug}`"
                                 class="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#006B3C] px-4 py-2.5 text-xs font-bold text-white"
                             >
                                 View Project
                                 <ArrowRight :size="14" />
-                            </a>
+                            </Link>
 
                         </div>
 
@@ -292,6 +294,27 @@ const images = { gate: '/images/bbhs/school/bbhs-school-gate.jpg' };
 
         </section>
 
+
+        <!-- STANDALONE FUNDRAISING CAMPAIGNS -->
+        <section v-if="standaloneCampaigns.length" class="bg-[#F7F9F7] py-12 lg:py-14">
+            <div class="mx-auto max-w-[1200px] px-5 lg:px-8">
+                <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#006B3C]">Support BBHS</p>
+                <h2 class="mt-2 text-3xl font-extrabold text-[#00351F]">Active Fundraising Campaigns</h2>
+                <p class="mt-2 max-w-2xl text-sm text-gray-600">Some initiatives are supported through dedicated campaigns rather than a formal project. You can support them here.</p>
+                <div class="mt-7 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <article v-for="campaign in standaloneCampaigns" :key="campaign.id" class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                        <img :src="campaign.image" :alt="campaign.title" class="h-48 w-full object-cover"/>
+                        <div class="p-5">
+                            <h3 class="text-lg font-extrabold text-[#00351F]">{{ campaign.title }}</h3>
+                            <p class="mt-2 line-clamp-3 text-sm text-gray-600">{{ campaign.excerpt }}</p>
+                            <div class="mt-4 flex justify-between text-xs"><strong>₦{{ Number(campaign.raised_amount).toLocaleString('en-NG') }} raised</strong><span>Target ₦{{ Number(campaign.target_amount).toLocaleString('en-NG') }}</span></div>
+                            <div class="mt-2 h-2 overflow-hidden rounded-full bg-gray-100"><div class="h-full bg-[#006B3C]" :style="{width: campaign.progress + '%'}"></div></div>
+                            <Link :href="`/fundraising/${campaign.slug}`" class="mt-5 inline-flex rounded-lg bg-[#006B3C] px-4 py-3 text-sm font-bold text-white">View campaign & donate</Link>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
 
         <!-- CTA -->
         <section class="bg-[#F7F9F7] py-12">

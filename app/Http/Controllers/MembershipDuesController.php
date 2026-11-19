@@ -1,5 +1,7 @@
 <?php
 namespace App\Http\Controllers;
+
+use App\Support\MembershipDuesCycle;
 use App\Models\MembershipDuesAccount;
 use App\Models\MembershipDuesPayment;
 use App\Models\MembershipDuesAuditLog;
@@ -28,6 +30,18 @@ class MembershipDuesController extends Controller {
   return Inertia::location($response->json('data.authorization_url'));
  }
  public function callback(Request $request) { $reference=(string)$request->query('reference'); abort_unless($reference,404); $payment=MembershipDuesPayment::where('reference',$reference)->firstOrFail(); abort_unless($payment->user_id===$request->user()?->id,403); $this->verifyAndApply($payment); return redirect()->route('dues.index')->with('success','Payment verification completed. Please review your payment status below.'); }
+ public function receipt(Request $request, MembershipDuesPayment $payment) {
+  abort_unless($payment->user_id === $request->user()->id, 403);
+  abort_unless($payment->status === 'success', 404);
+  $payment->load('user');
+  return Inertia::render('Dues/Receipt', ['payment' => [
+   'reference'=>$payment->reference, 'amount'=>$payment->amount_kobo/100, 'currency'=>$payment->currency,
+   'period_type'=>$payment->period_type, 'period_start'=>$payment->period_start?->format('d M Y'),
+   'period_end'=>$payment->period_end?->format('d M Y'), 'paid_at'=>$payment->paid_at?->format('d M Y, h:i A'),
+   'member_name'=>$payment->user?->name, 'member_email'=>$payment->user?->email,
+  ]]);
+ }
+
  public function webhook(Request $request) {
   $signature=$request->header('x-paystack-signature'); $secret=config('services.paystack.secret_key'); abort_unless($secret && $signature && hash_equals(hash_hmac('sha512',$request->getContent(),$secret),$signature),401);
   $payload=$request->all(); if(($payload['event']??'')==='charge.success' && !empty($payload['data']['reference'])) {
@@ -37,12 +51,6 @@ class MembershipDuesController extends Controller {
    else app(\App\Http\Controllers\FundraisingController::class)->processWebhookReference($reference);
   }
   return response()->json(['received'=>true]);
- }
- private function currentCycleStart(MembershipDuesAccount $account, string $period): \Carbon\Carbon {
-  $start=\Carbon\Carbon::parse($account->commencement_date ?? today())->startOfDay();
-  $today=today();
-  while(($period==='annual'?$start->copy()->addYear():$start->copy()->addMonthNoOverflow())->lte($today)) { $start=$period==='annual'?$start->addYear():$start->addMonthNoOverflow(); }
-  return $start;
  }
  private function verifyAndApply(MembershipDuesPayment $payment): void {
   if($payment->status==='success') return;
@@ -56,8 +64,8 @@ class MembershipDuesController extends Controller {
    $locked=MembershipDuesPayment::lockForUpdate()->find($payment->id);
    if(!$locked || $locked->status==='success') return;
    $account=MembershipDuesAccount::lockForUpdate()->find($locked->dues_account_id);
-   $start=($account->paid_through && $account->paid_through->gte(today()))?$account->paid_through->copy()->addDay():$this->currentCycleStart($account, $locked->period_type);
-   $end=$locked->period_type==='annual'?$start->copy()->addYear()->subDay():$start->copy()->addMonthNoOverflow()->subDay();
+   $start=MembershipDuesCycle::nextUnpaidStart($account, $locked->period_type);
+   $end=MembershipDuesCycle::periodEnd($account, $start, $locked->period_type);
    $locked->update(['status'=>'success','paid_at'=>now(),'period_start'=>$start,'period_end'=>$end,'gateway_reference'=>$data['id']??null,'gateway_response'=>$data]);
    $account->update(['plan'=>$locked->period_type,'paid_through'=>$end,'next_due_at'=>$end->copy()->addDay()]);
    MembershipDuesAuditLog::create(['user_id'=>$locked->user_id,'action'=>'dues_payment_success','details'=>['payment_id'=>$locked->id,'amount_kobo'=>$locked->amount_kobo]]);
@@ -67,8 +75,8 @@ class MembershipDuesController extends Controller {
   // Send only after the transaction commits; repeated callbacks/webhooks cannot send duplicate confirmations.
   if($applied) {
    $member = \App\Models\User::find($payment->user_id);
+   $amount=number_format($payment->amount_kobo/100,2);
    if($member) {
-    $amount=number_format($payment->amount_kobo/100,2);
     $member->notify(new BbhsPlatformNotification(
      'BBHS membership dues payment confirmed',
      'We have successfully received your membership dues payment of ₦'.$amount.'. Your dues record has been updated. Thank you.',
@@ -77,6 +85,15 @@ class MembershipDuesController extends Controller {
      ['payment_id'=>$payment->id,'reference'=>$payment->reference,'amount_kobo'=>$payment->amount_kobo]
     ));
    }
+   \App\Models\User::query()->get()->filter(fn ($candidate) => $candidate->isAdmin())->each(function ($admin) use ($payment, $amount, $member) {
+    $admin->notify(new BbhsPlatformNotification(
+     'BBHS membership payment received',
+     ($member?->name ?? 'A member').' paid ₦'.$amount.' in membership dues.',
+     'membership',
+     '/admin/dues/'.$payment->user_id,
+     ['payment_id'=>$payment->id,'reference'=>$payment->reference,'amount_kobo'=>$payment->amount_kobo]
+    ));
+   });
   }
  }
 }

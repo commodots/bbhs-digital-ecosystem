@@ -4,7 +4,7 @@ import { CalendarDays, MapPin, ArrowRight, Clock3, ExternalLink } from 'lucide-v
 const props = defineProps({
     news: { type: Array, default: () => [] },
     events: { type: Array, default: () => [] },
-    projects: { type: Array, default: () => [] },
+    campaigns: { type: Array, default: () => [] },
 });
 </script>
 
@@ -56,10 +56,11 @@ const props = defineProps({
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:col-span-3">
-            <div v-if="!props.projects.length" class="flex min-h-[310px] flex-col items-center justify-center p-6 text-center"><p class="text-sm text-gray-500">No published projects yet.</p><a href="/projects" class="mt-3 text-xs font-bold text-[#006b3c]">View Projects</a></div>
+            <div v-if="!props.campaigns.length" class="flex min-h-[310px] flex-col items-center justify-center p-6 text-center"><p class="text-sm text-gray-500">No active fundraising campaigns at the moment.</p><a href="/fundraising" class="mt-3 text-xs font-bold text-[#006b3c]">Explore Fundraising</a></div>
             <template v-else>
-                <div class="relative h-[170px] overflow-hidden sm:h-[180px]"><img :src="props.projects[0].image" :alt="props.projects[0].title" class="h-full w-full object-cover" /><div class="absolute inset-0 bg-gradient-to-t from-[#00351F]/85 via-[#00351F]/10 to-transparent"></div><div class="absolute bottom-3 left-3 rounded-md bg-[#00351F]/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-white">Featured Project</div></div>
-                <div class="p-4"><h3 class="text-base font-extrabold leading-5 text-[#00351F]">{{ props.projects[0].title }}</h3><p class="mt-2 line-clamp-3 text-xs leading-5 text-gray-500">{{ props.projects[0].excerpt }}</p><div class="mt-4"><div class="mb-1.5 flex justify-between text-[10px]"><span class="font-semibold text-gray-600">{{ props.projects[0].progress }}% Funded</span><span class="font-bold text-[#006b3c]">₦{{ props.projects[0].raised }} raised</span></div><div class="h-1.5 overflow-hidden rounded-full bg-gray-100"><div class="h-full rounded-full bg-[#006b3c]" :style="{ width: props.projects[0].progress + '%' }"></div></div><div class="mt-1 text-right text-[9px] text-gray-400">Target: ₦{{ props.projects[0].target }}</div></div><a :href="`/projects/${props.projects[0].slug}`" class="mt-4 flex items-center justify-center gap-2 rounded-lg bg-[#006b3c] px-3 py-2.5 text-xs font-bold text-white">View Project <ExternalLink :size="13" /></a></div>
+                <div class="relative h-[170px] overflow-hidden sm:h-[180px]"><img :src="props.campaigns[0].image" :alt="props.campaigns[0].title" class="h-full w-full object-cover" /><div class="absolute inset-0 bg-gradient-to-t from-[#00351F]/85 via-[#00351F]/10 to-transparent"></div><div class="absolute bottom-3 left-3 rounded-md bg-[#00351F]/80 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-white">Featured Cause</div></div>
+                <div class="p-4"><h3 class="text-base font-extrabold leading-5 text-[#00351F]">{{ props.campaigns[0].title }}</h3><p class="mt-2 line-clamp-3 text-xs leading-5 text-gray-500">{{ props.campaigns[0].excerpt }}</p><div class="mt-4"><div class="mb-1.5 flex justify-between text-[10px]"><span class="font-semibold text-gray-600">{{ props.campaigns[0].progress }}% Funded</span><span class="font-bold text-[#006b3c]">₦{{ props.campaigns[0].raised }} raised</span></div><div class="h-1.5 overflow-hidden rounded-full bg-gray-100"><div class="h-full rounded-full bg-[#006b3c]" :style="{ width: props.campaigns[0].progress + '%' }"></div></div><div class="mt-1 text-right text-[9px] text-gray-400">Target: ₦{{ props.campaigns[0].target }}</div></div><a :href="`/fundraising/${props.campaigns[0].slug}`" class="mt-4 flex items-center justify-center gap-2 rounded-lg bg-[#006b3c] px-3 py-2.5 text-xs font-bold text-white">View Campaign & Donate <ExternalLink :size="13" /></a></div>
+                <a href="/fundraising" class="mt-3 block border-t border-gray-100 pt-3 text-center text-[10px] font-bold uppercase tracking-wide text-[#006b3c]">View All Campaigns</a>
             </template>
         </div>
     </div>
