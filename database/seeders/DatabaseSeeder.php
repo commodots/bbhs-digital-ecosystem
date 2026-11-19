@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -12,13 +11,8 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        // Retain the existing development seed account behavior.
-        User::factory()->firstOrCreate([
-            'email' => 'test@example.com',
-        ], [
-            'name' => 'Test User',
-        ]);
-
+        // Production baseline only. Demo accounts and transactional records
+        // must be seeded separately and only when explicitly required.
         $this->call([
             BbhsOrganisationSeeder::class,
             BbhsNationalExecutivesSeeder::class,
